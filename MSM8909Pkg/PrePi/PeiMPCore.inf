@@ -2,7 +2,6 @@
 #
 #  (C) Copyright 2015 Hewlett-Packard Development Company, L.P.<BR>
 #  Copyright (c) 2011-2017, ARM Ltd. All rights reserved.<BR>
-#  Copyright (c) 2020, Arm Limited. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -10,15 +9,15 @@
 
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = ArmPlatformPrePiUniCore
-  FILE_GUID                      = 3e401783-cc94-4fcd-97bc-bd35ac369d2f
+  BASE_NAME                      = ArmPlatformPrePiMPCore
+  FILE_GUID                      = d959e387-7b91-452c-90e0-a1dbac90ddb8
   MODULE_TYPE                    = SEC
   VERSION_STRING                 = 1.0
 
 [Sources]
   PrePi.h
   PrePi.c
-  MainUniCore.c
+  MainMPCore.c
 
 [Sources.ARM]
   Arm/ArchPrePi.c
@@ -41,6 +40,7 @@
   DebugLib
   DebugAgentLib
   ArmLib
+  ArmGicLib
   IoLib
   TimerLib
   SerialPortLib
@@ -82,6 +82,12 @@
   gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize
   gArmPlatformTokenSpaceGuid.PcdCPUCoreSecondaryStackSize
 
+  gArmTokenSpaceGuid.PcdGicDistributorBase
+  gArmTokenSpaceGuid.PcdGicInterruptInterfaceBase
+  gArmTokenSpaceGuid.PcdGicSgiIntId
+
+  gArmTokenSpaceGuid.PcdSystemMemoryBase
+  gArmTokenSpaceGuid.PcdSystemMemorySize
   gArmPlatformTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
 
   gArmPlatformTokenSpaceGuid.PcdCoreCount
@@ -98,6 +104,3 @@
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiLoaderCode
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiLoaderData
 
-[Pcd]
-  gArmTokenSpaceGuid.PcdSystemMemoryBase
-  gArmTokenSpaceGuid.PcdSystemMemorySize

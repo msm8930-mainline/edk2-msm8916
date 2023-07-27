@@ -17,6 +17,7 @@
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
 #include <Configuration/DeviceMemoryMap.h>
+#include <Library/MemoryAllocationLib.h> 
 /**
   Return the Virtual Memory Map of your platform
 
@@ -49,45 +50,65 @@ AddHob
 	);
 }
 
-VOID
-ArmPlatformGetVirtualMemoryMap (
-  IN ARM_MEMORY_REGION_DESCRIPTOR** VirtualMemoryMap
-  )
+VOID ArmPlatformGetVirtualMemoryMap(IN ARM_MEMORY_REGION_DESCRIPTOR** VirtualMemoryMap)
 {
-  //TO-DO:ADD MEMORY MAP HERE
-    PARM_MEMORY_REGION_DESCRIPTOR_EX MemoryDescriptorEx = gDeviceMemoryDescriptorEx;
-    ARM_MEMORY_REGION_DESCRIPTOR MemoryDescriptor[MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT];
-    UINTN Index = 0;
+  //TO-DO: ADD MEMORY MAP HERE
+  PARM_MEMORY_REGION_DESCRIPTOR_EX MemoryDescriptorEx = gDeviceMemoryDescriptorEx;
+  UINTN Index = 0;
 
-    // Run through each memory descriptor
-    while (MemoryDescriptorEx->Address != (EFI_PHYSICAL_ADDRESS)0xFFFFFFFF)
+  // Count the number of memory descriptors to determine the array size
+  while (MemoryDescriptorEx->Address != (EFI_PHYSICAL_ADDRESS)0xFFFFFFFF)
+  {
+    Index++;
+    MemoryDescriptorEx++;
+  }
+
+  // Allocate memory for the MemoryDescriptor array
+  ARM_MEMORY_REGION_DESCRIPTOR* MemoryDescriptor = (ARM_MEMORY_REGION_DESCRIPTOR*)AllocatePool((Index + 1) * sizeof(ARM_MEMORY_REGION_DESCRIPTOR));
+  if (MemoryDescriptor == NULL)
+  {
+    // Handle allocation failure
+    return;
+  }
+
+  // Reset Index for copying the memory descriptors
+  Index = 0;
+  MemoryDescriptorEx = gDeviceMemoryDescriptorEx;
+
+  // Run through each memory descriptor and copy it
+  while (MemoryDescriptorEx->Address != (EFI_PHYSICAL_ADDRESS)0xFFFFFFFF)
+  {
+    switch (MemoryDescriptorEx->HobOption)
     {
-        switch (MemoryDescriptorEx->HobOption)
-        {
-            case AddMem:
-			case AddDev:
-                AddHob(MemoryDescriptorEx);
-                break;
-            case NoHob:
-            default:
-                goto update;
-        }
-
-    update:
-        ASSERT(Index < MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT);
-
-        MemoryDescriptor[Index].PhysicalBase = MemoryDescriptorEx->Address;
-        MemoryDescriptor[Index].VirtualBase = MemoryDescriptorEx->Address;
-        MemoryDescriptor[Index].Length = MemoryDescriptorEx->Length;
-		MemoryDescriptor[Index].Attributes = MemoryDescriptorEx->ArmAttributes;
-
-        Index++;
-        MemoryDescriptorEx++;
+      case AddMem:
+      case AddDev:
+        AddHob(MemoryDescriptorEx);
+        break;
+      case NoHob:
+      default:
+        goto update;
     }
 
-    // Last one (terminator)
+  update:
     ASSERT(Index < MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT);
-    
-    *VirtualMemoryMap = MemoryDescriptor;
-  //ASSERT(0);
+
+    MemoryDescriptor[Index].PhysicalBase = MemoryDescriptorEx->Address;
+    MemoryDescriptor[Index].VirtualBase = MemoryDescriptorEx->Address;
+    MemoryDescriptor[Index].Length = MemoryDescriptorEx->Length;
+    MemoryDescriptor[Index].Attributes = MemoryDescriptorEx->ArmAttributes;
+
+    Index++;
+    MemoryDescriptorEx++;
+  }
+
+  // Last one (terminator)
+  ASSERT(Index < MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT);
+
+  // Set the last descriptor as zero-filled (terminator)
+  MemoryDescriptor[Index].PhysicalBase = 0;
+  MemoryDescriptor[Index].VirtualBase = 0;
+  MemoryDescriptor[Index].Length = 0;
+  MemoryDescriptor[Index].Attributes = 0;
+
+  *VirtualMemoryMap = MemoryDescriptor;
 }

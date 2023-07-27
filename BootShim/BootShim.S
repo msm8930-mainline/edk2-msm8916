@@ -1,34 +1,61 @@
-.code 32
-.text
-.globl _start
-_start:
-	/* see if we need to relocate */
-	adr			r0, _Payload 	//Load the payload adress into r0
+_Head:
+	/* Set _Entry address */
+	adr		x1, _Payload
 
-	ldr			r1, UefiBase 	//Load the expected payload base into r1
-	cmp			r0, r1			//Compare the adresses
-	beq			_Entry			//Jump to entry if the adress is the same
-	ldr 		r2, UefiSize
+	/* Jump to the real code */
+	b		_Start
+
+	/* Fake Linux kernel header */
+
+_StackBase:
+	/* Text Offset */
+	.quad UEFI_BASE
+
+_StackSize:
+	/* Image Size */
+	.quad UEFI_SIZE
+
+	/* Flags */
+	.quad 0
+
+	/* Reserved */
+	.quad 0
+
+	/* Reserved */
+	.quad 0
+
+	/* Reserved */
+	.quad 0
+
+	/* ARM64 Magic */
+	.ascii "ARM\x64"
+
+	/* Reserved */
+	.long 0
+
+_Start:
+	mov		x4, x1
+	ldr		x5, _StackBase
+	cmp		x4, x5
+	beq		_Entry
+	ldr		x6,  _StackSize
 
 _CopyLoop:
-	/* memcpy */
-	ldr		r3, [r0], #4
-	str		r3, [r1], #4
-	subs	r2, r2, #4		//substract the size that got copied from fd size
-	bgt		_CopyLoop		//branch if greater than zero
-
-	/* we're relocated, jump to the right address */
+	ldp		x2, x3, [x4], #16
+	stp		x2, x3, [x5], #16
+	subs	x6, x6, #16
+	b.ne	_CopyLoop
+	ldr		x5, _StackBase
 
 _Entry:
-	ldr		r5, UefiBase
-	bx		r5
+	br		x5
 
-UefiBase:
-	.word UEFI_BASE
-
-UefiSize:
-	.word UEFI_SIZE
+_Dead:
+	/* We should never get here */
+	b		_Dead
 
 .text
 .align 4
+
 _Payload:
+	/* Your code will get ran right after this binary */

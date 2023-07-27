@@ -37,7 +37,7 @@
   MSM8909Pkg.c
   MSM8909PkgMem.c
 
-[Sources.Arm]
+[Sources.Aarch64]
   Arm/ArmPlatformHelper.S    | GCC
 
 [FixedPcd]

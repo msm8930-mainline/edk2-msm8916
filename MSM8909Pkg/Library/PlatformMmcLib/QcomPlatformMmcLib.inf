@@ -16,7 +16,7 @@
   EmbeddedPkg/EmbeddedPkg.dec
   MSM8909Pkg/MSM8909Pkg.dec
 
-[BuildOptions.ARM]
+[BuildOptions.AARCH64]
   GCC:*_*_*_CC_FLAGS = -Wno-unused-value
 
 [LibraryClasses]

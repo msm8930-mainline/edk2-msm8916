@@ -8,7 +8,7 @@
   VERSION_STRING                 = 1.0
   ENTRY_POINT                    = SimpleFbDxeInitialize
 
-[BuildOptions.ARM]
+[BuildOptions.AARCH64]
   GCC:*_*_*_CC_FLAGS = -Wno-pointer-to-int-cast -Wno-overflow -Wno-int-to-pointer-cast
 
 [Sources.common]

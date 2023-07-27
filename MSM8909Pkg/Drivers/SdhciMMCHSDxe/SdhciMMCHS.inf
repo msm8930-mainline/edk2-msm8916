@@ -32,7 +32,7 @@
   QcomPlatformMmcLib
   QcomTargetMmcSdhciLib
 
-[BuildOptions.ARM]
+[BuildOptions.AARCH64]
   GCC:*_*_*_CC_FLAGS = -Wno-pointer-to-int-cast
 
 [Protocols]

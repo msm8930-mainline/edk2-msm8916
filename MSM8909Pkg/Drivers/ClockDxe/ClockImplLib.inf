@@ -14,7 +14,7 @@
   clock-local.c
   clock_pll.c
 
-[BuildOptions.ARM]
+[BuildOptions.AARCH64]
   GCC:*_*_*_CC_FLAGS = -Wno-pointer-to-int-cast -Wno-overflow
 
 [Packages]
