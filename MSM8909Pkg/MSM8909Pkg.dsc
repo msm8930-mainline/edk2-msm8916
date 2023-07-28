@@ -162,9 +162,10 @@
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"Alpha"
 
-  # We only boot one processor here! Fuck you sonic!
+  # We only boot one processor here! Fuck you sonic
   gArmPlatformTokenSpaceGuid.PcdCoreCount|1
   gArmPlatformTokenSpaceGuid.PcdClusterCount|1
+
 
   #
   # ARM General Interrupt Controller
@@ -265,7 +266,7 @@
   #
   # PEI Phase modules
   #
-  MSM8909Pkg/PrePi/PrePi.inf
+  MSM8909Pkg/PrePi/PeiUniCore.inf
 
   #
   # DXE
@@ -289,8 +290,8 @@
   EmbeddedPkg/MetronomeDxe/MetronomeDxe.inf
 
   MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
-  MSM8909Pkg/Drivers/ConSplitterDxe/ConSplitterDxe.inf
-  MSM8909Pkg/Drivers/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
+  MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
+  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
 

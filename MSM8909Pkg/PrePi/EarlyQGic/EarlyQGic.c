@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#include "Pi.h"
+#include "PrePi.h"
 
 #include <Guid/LzmaDecompress.h>
 #include <Guid/VariableFormat.h>
@@ -32,7 +32,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/CacheMaintenanceLib.h>
 #include <Library/DebugAgentLib.h>
 #include <Library/DebugLib.h>
-#include <Library/FrameBufferSerialPortLib.h>
+#include "../../Include/Library/FrameBufferSerialPortLib.h"
 #include <Library/HobLib.h>
 #include <Library/IoLib.h>
 #include <Library/MemoryAllocationLib.h>

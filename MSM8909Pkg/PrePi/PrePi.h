@@ -85,4 +85,11 @@ ProcessLibraryConstructorList (
   VOID
   );
 
+/* Wiring qGic */
+EFI_STATUS
+EFIAPI
+QGicPeim(VOID);
+
+VOID QGicCpuInit(VOID);
+VOID QgicCpuInitSecondary(VOID);
 #endif /* _PREPI_H_ */

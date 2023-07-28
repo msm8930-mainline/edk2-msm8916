@@ -36,6 +36,11 @@ VOID LibQcomPlatformMmcClockConfig(UINT32 interface, UINT32 freq)
     DEBUG((EFI_D_ERROR, "failed to set sdc%u_core_clk @%u ret = %d\n", interface, freq, ret));
     ASSERT(0);
   }
+     /* Clear screen at new FB address */ 
+  UINT8 *base = (UINT8 *)0x8e000000ull;
+  for (UINTN i = 0; i < 0x00800000; i++) {
+    base[i] = 0;
+  }
 }
 
 VOID LibQcomPlatformMmcClockConfigCdc(UINT32 interface)

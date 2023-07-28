@@ -26,12 +26,11 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MSM8909_CLOCK_H
-#define __MSM8909_CLOCK_H
+#ifndef __MSM8916_CLOCK_H
+#define __MSM8916_CLOCK_H
 
 #include <Chipset/clock.h>
 #include <Chipset/clock_lib2.h>
-
 
 #define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
 
@@ -66,6 +65,19 @@
 #define DSI_PIXEL0_N                    REG_MM(0x4D00C)
 #define DSI_PIXEL0_D                    REG_MM(0x4D010)
 
+#define DSI_BYTE1_CMD_RCGR              REG_MM(0x4D0B0)
+#define DSI_BYTE1_CFG_RCGR              REG_MM(0x4D0B4)
+#define DSI_BYTE1_CBCR                  REG_MM(0x4D0A0)
+#define DSI_ESC1_CMD_RCGR               REG_MM(0x4D0A8)
+#define DSI_ESC1_CFG_RCGR               REG_MM(0x4D0AC)
+#define DSI_ESC1_CBCR                   REG_MM(0x4D09C)
+#define DSI_PIXEL1_CMD_RCGR             REG_MM(0x4D0B8)
+#define DSI_PIXEL1_CFG_RCGR             REG_MM(0x4D0BC)
+#define DSI_PIXEL1_CBCR                 REG_MM(0x4D0A4)
+#define DSI_PIXEL1_M                    REG_MM(0x4D0C0)
+#define DSI_PIXEL1_N                    REG_MM(0x4D0C4)
+#define DSI_PIXEL1_D                    REG_MM(0x4D0C8)
+
 void platform_clock_init(void);
 
 void clock_init_mmc(uint32_t interface);
@@ -74,8 +86,8 @@ void clock_config_uart_dm(uint8_t id);
 void hsusb_clock_init(void);
 void clock_config_ce(uint8_t instance);
 void mdp_clock_init(void);
-void mdp_clock_enable(void);
-void mdp_clock_disable(void);
 void mdp_gdsc_ctrl(uint8_t enable);
-void clock_config_blsp_spi(uint8_t blsp_id, uint8_t qup_id);
+void clock_ce_enable(uint8_t instance);
+void clock_ce_disable(uint8_t instance);
+void clock_config_blsp_i2c(uint8_t blsp_id, uint8_t qup_id);
 #endif

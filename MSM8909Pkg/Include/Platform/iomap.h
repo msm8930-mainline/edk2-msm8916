@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,14 +26,13 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _PLATFORM_MSM8909_IOMAP_H_
-#define _PLATFORM_MSM8909_IOMAP_H_
+#ifndef _PLATFORM_MSM8916_IOMAP_H_
+#define _PLATFORM_MSM8916_IOMAP_H_
 
 #define MSM_IOMAP_BASE              0x00000000
 #define MSM_IOMAP_END               0x08000000
-
-#define A7_SS_BASE                 0x0B000000
-#define A7_SS_END                  0x0B200000
+#define A53_SS_BASE                 0x0B000000
+#define A53_SS_END                  0x0B200000
 
 #define SYSTEM_IMEM_BASE            0x08600000
 #define MSM_SHARED_IMEM_BASE        0x08600000
@@ -41,30 +40,36 @@
 #define RESTART_REASON_ADDR         (MSM_SHARED_IMEM_BASE + 0x65C)
 #define BS_INFO_OFFSET              (0x6B0)
 #define BS_INFO_ADDR                (MSM_SHARED_IMEM_BASE + BS_INFO_OFFSET)
-
 #define SDRAM_START_ADDR            0x80000000
 
-#define MSM_SHARED_BASE             0x87D00000
-
-#define MSM_NAND_BASE               0x79B0000
-/* NAND BAM */
-#define MSM_NAND_BAM_BASE           0x7984000
-
+#define MSM_SHARED_BASE             0x86300000
 #define APPS_SS_BASE                0x0B000000
+
+#define DDR_START                   get_ddr_start()
+#define ABOOT_FORCE_KERNEL_ADDR     DDR_START + 0x8000
+#define ABOOT_FORCE_KERNEL64_ADDR   DDR_START + 0x80000
+#define ABOOT_FORCE_RAMDISK_ADDR    DDR_START + 0x2000000
+#define ABOOT_FORCE_TAGS_ADDR       DDR_START + 0x1E00000
 
 #define MSM_GIC_DIST_BASE           APPS_SS_BASE
 #define MSM_GIC_CPU_BASE            (APPS_SS_BASE + 0x2000)
+#define APCS_ALIAS0_IPC_INTERRUPT   (APPS_SS_BASE + 0x00011008)
+#define MSM_WATCHDOG_BASE           (APPS_SS_BASE + 0x00017000)
+#define MSM_WATCHDOG_RST            (MSM_WATCHDOG_BASE + 0x04)
+#define MSM_WATCHDOG_EN             (MSM_WATCHDOG_BASE + 0x08)
 #define APPS_APCS_QTMR_AC_BASE      (APPS_SS_BASE + 0x00020000)
 #define APPS_APCS_F0_QTMR_V1_BASE   (APPS_SS_BASE + 0x00021000)
-#define APCS_ALIAS0_IPC_INTERRUPT   (APPS_SS_BASE + 0x00011008)
 #define QTMR_BASE                   APPS_APCS_F0_QTMR_V1_BASE
+
+#define APCS_BANKED_SAW2_BASE       (APPS_SS_BASE + 0x9000)
+#define APCS_L2_SAW2_BASE           (APPS_SS_BASE + 0x12000)
 
 #define PERIPH_SS_BASE              0x07800000
 
 #define MSM_SDC1_BASE               (PERIPH_SS_BASE + 0x00024000)
 #define MSM_SDC1_SDHCI_BASE         (PERIPH_SS_BASE + 0x00024900)
 #define MSM_SDC2_BASE               (PERIPH_SS_BASE + 0x00064000)
-#define MSM_SDC2_SDHCI_BASE         (PERIPH_SS_BASE + 0x00064900)
+#define MSM_SDC2_SDHCI_BASE        (PERIPH_SS_BASE + 0x00064900)
 
 /* SDHCI */
 #define SDCC_MCI_HC_MODE            (0x00000078)
@@ -72,15 +77,11 @@
 #define SDCC_HC_PWRCTL_MASK_REG     (0x000000E0)
 #define SDCC_HC_PWRCTL_CLEAR_REG    (0x000000E4)
 #define SDCC_HC_PWRCTL_CTL_REG      (0x000000E8)
-
 #define BLSP1_UART0_BASE            (PERIPH_SS_BASE + 0x000AF000)
 #define BLSP1_UART1_BASE            (PERIPH_SS_BASE + 0x000B0000)
 #define MSM_USB_BASE                (PERIPH_SS_BASE + 0x000D9000)
 
 #define CLK_CTL_BASE                0x1800000
-
-#define PMI_SECOND_SLAVE_OFFSET 0x1
-#define PMI_SECOND_SLAVE_ADDR_BASE (PMI_SECOND_SLAVE_OFFSET << 16)
 
 #define SPMI_BASE                   0x02000000
 #define SPMI_GENI_BASE              (SPMI_BASE + 0xA000)
@@ -107,6 +108,7 @@
 
 /* I2C */
 #define BLSP_QUP_BASE(blsp_id, qup_id) (PERIPH_SS_BASE + 0xB5000 + 0x1000 * qup_id)
+
 #define GCC_BLSP1_QUP1_APPS_CBCR    (CLK_CTL_BASE + 0x2008)
 #define GCC_BLSP1_QUP1_CFG_RCGR     (CLK_CTL_BASE + 0x2010)
 #define GCC_BLSP1_QUP1_CMD_RCGR     (CLK_CTL_BASE + 0x200C)
@@ -131,30 +133,8 @@
 #define GCC_BLSP1_QUP6_CFG_RCGR     (CLK_CTL_BASE + 0x7004)
 #define GCC_BLSP1_QUP6_CMD_RCGR     (CLK_CTL_BASE + 0x7000)
 
-#define GCC_BLSP1_QUP3_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x401C)
-#define GCC_BLSP1_QUP3_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x4024)
-#define GCC_BLSP1_QUP3_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x4028)
-#define GCC_BLSP1_QUP3_SPI_APPS_M           (CLK_CTL_BASE + 0x402C)
-#define GCC_BLSP1_QUP3_SPI_APPS_N           (CLK_CTL_BASE + 0x4030)
-#define GCC_BLSP1_QUP3_SPI_APPS_D           (CLK_CTL_BASE + 0x4034)
-
-#define GCC_BLSP1_QUP4_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x501C)
-#define GCC_BLSP1_QUP4_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x5024)
-#define GCC_BLSP1_QUP4_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x5028)
-#define GCC_BLSP1_QUP4_SPI_APPS_M           (CLK_CTL_BASE + 0x502C)
-#define GCC_BLSP1_QUP4_SPI_APPS_N           (CLK_CTL_BASE + 0x5030)
-#define GCC_BLSP1_QUP4_SPI_APPS_D           (CLK_CTL_BASE + 0x5034)
-
-#define GCC_BLSP1_QUP5_SPI_APPS_CBCR        (CLK_CTL_BASE + 0x601C)
-#define GCC_BLSP1_QUP5_SPI_APPS_CMD_RCGR    (CLK_CTL_BASE + 0x6024)
-#define GCC_BLSP1_QUP5_SPI_CFG_RCGR         (CLK_CTL_BASE + 0x6028)
-#define GCC_BLSP1_QUP5_SPI_APPS_M           (CLK_CTL_BASE + 0x602C)
-#define GCC_BLSP1_QUP5_SPI_APPS_N           (CLK_CTL_BASE + 0x6030)
-#define GCC_BLSP1_QUP5_SPI_APPS_D           (CLK_CTL_BASE + 0x6034)
-
 /* GPLL */
-#define GPLL0_STATUS                (CLK_CTL_BASE + 0x21024)
-#define GPLL0_MODE                  (CLK_CTL_BASE + 0x21000)
+#define GPLL0_STATUS                (CLK_CTL_BASE + 0x2101C)
 #define GPLL1_STATUS                (CLK_CTL_BASE + 0x2001C)
 #define APCS_GPLL_ENA_VOTE          (CLK_CTL_BASE + 0x45000)
 #define APCS_CLOCK_BRANCH_ENA_VOTE  (CLK_CTL_BASE + 0x45004)
@@ -170,6 +150,7 @@
 #define SDCC1_N                     (CLK_CTL_BASE + 0x42010) /* n */
 #define SDCC1_D                     (CLK_CTL_BASE + 0x42014) /* d */
 
+#define SDC2_HDRV_PULL_CTL          (TLMM_BASE_ADDR + 0x109000)
 #define SDCC2_BCR                   (CLK_CTL_BASE + 0x43000) /* block reset */
 #define SDCC2_APPS_CBCR             (CLK_CTL_BASE + 0x43018) /* branch control */
 #define SDCC2_AHB_CBCR              (CLK_CTL_BASE + 0x4301C)
@@ -181,6 +162,12 @@
 
 /* UART */
 #define BLSP1_AHB_CBCR              (CLK_CTL_BASE + 0x1008)
+#define BLSP1_UART1_APPS_CBCR       (CLK_CTL_BASE + 0x203C)
+#define BLSP1_UART1_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x2044)
+#define BLSP1_UART1_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x2048)
+#define BLSP1_UART1_APPS_M          (CLK_CTL_BASE + 0x204C)
+#define BLSP1_UART1_APPS_N          (CLK_CTL_BASE + 0x2050)
+#define BLSP1_UART1_APPS_D          (CLK_CTL_BASE + 0x2054)
 #define BLSP1_UART2_APPS_CBCR       (CLK_CTL_BASE + 0x302C)
 #define BLSP1_UART2_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x3034)
 #define BLSP1_UART2_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x3038)
@@ -188,12 +175,6 @@
 #define BLSP1_UART2_APPS_N          (CLK_CTL_BASE + 0x3040)
 #define BLSP1_UART2_APPS_D          (CLK_CTL_BASE + 0x3044)
 
-#define BLSP1_UART1_APPS_CBCR       (CLK_CTL_BASE + 0x203C)
-#define BLSP1_UART1_APPS_CMD_RCGR   (CLK_CTL_BASE + 0x2044)
-#define BLSP1_UART1_APPS_CFG_RCGR   (CLK_CTL_BASE + 0x2048)
-#define BLSP1_UART1_APPS_M          (CLK_CTL_BASE + 0x204C)
-#define BLSP1_UART1_APPS_N          (CLK_CTL_BASE + 0x2050)
-#define BLSP1_UART1_APPS_D          (CLK_CTL_BASE + 0x2054)
 
 /* USB */
 #define USB_HS_BCR                  (CLK_CTL_BASE + 0x41000)
@@ -209,74 +190,79 @@
  */
 #define RPMB_SND_RCV_BUF            0x90000000
 #define RPMB_SND_RCV_BUF_SZ         0x1
-		
-#define APP_REGION_ADDR_TZ_LEGACY_APP 0x87A00000		
-#define APP_REGION_ADDR_TZ_V4_APP     0x87900000		
-#define APP_REGION_SIZE_TZ_LEGACY_APP 0x200000		
-#define APP_REGION_SIZE_TZ_V4_APP     0x300000
 
 /* QSEECOM: Secure app region notification */
-#define APP_REGION_ADDR 0x87900000
+#define APP_REGION_ADDR 0x86000000
 #define APP_REGION_SIZE 0x300000
 
-
 /* MDSS */
-#define MIPI_DSI_BASE               (0x1AC8000)
+#define MIPI_DSI_BASE               (0x1A98000)
 #define MIPI_DSI0_BASE              MIPI_DSI_BASE
-#define MIPI_DSI1_BASE              MIPI_DSI_BASE
-#define DSI0_PHY_BASE               (0x1AC8500)
-#define DSI1_PHY_BASE               DSI0_PHY_BASE
-#define DSI0_PLL_BASE               (0x1AC8300)
+#define MIPI_DSI1_BASE              (0x1AA0000)
+#define DSI0_PHY_BASE               (0x1A98500)
+#define DSI1_PHY_BASE               (0x1AA0500)
+#define DSI0_PLL_BASE               (0x1A98300)
 #define DSI1_PLL_BASE               DSI0_PLL_BASE
-#define DSI0_REGULATOR_BASE         (0x1AC8780)
-#define DSI1_REGULATOR_BASE         DSI0_REGULATOR_BASE
-
-/* MDP */
-#define MDP_BASE                    0x1A00000
+#define REG_DSI(off)                (MIPI_DSI_BASE + 0x04 + (off))
+#define MDP_BASE                    (0x1A00000)
 #define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_HW_REV                              REG_MDP(0x1000)
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x7000)
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x17000)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x27000)
+#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x45000)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x46000)
+#define MDP_DISP_INTF_SEL                       REG_MDP(0x1004)
+#define MDP_VIDEO_INTF_UNDERFLOW_CTL            REG_MDP(0x12E0)
+#define MDP_UPPER_NEW_ROI_PRIOR_RO_START        REG_MDP(0x11EC)
+#define MDP_LOWER_NEW_ROI_PRIOR_TO_START        REG_MDP(0x13F8)
+#define MDP_CTL_0_BASE                          REG_MDP(0x2000)
+#define MDP_CTL_1_BASE                          REG_MDP(0x2200)
+#define MDP_CLK_CTRL0                           REG_MDP(0x012AC)
+#define MDP_CLK_CTRL1                           REG_MDP(0x012B4)
+#define MDP_CLK_CTRL2                           REG_MDP(0x012BC)
+#define MDP_CLK_CTRL3                           REG_MDP(0x013A8)
+#define MDP_CLK_CTRL4                           REG_MDP(0x013B0)
+#define MDP_CLK_CTRL5                           REG_MDP(0x013B8)
 
-#define MDP_DMA_P_CONFIG            REG_MDP(0x90000)
-#define MDP_DMA_P_OUT_XY            REG_MDP(0x90010)
-#define MDP_DMA_P_SIZE              REG_MDP(0x90004)
-#define MDP_DMA_P_BUF_ADDR          REG_MDP(0x90008)
-#define MDP_DMA_P_BUF_Y_STRIDE      REG_MDP(0x9000C)
+#define MDP_INTF_0_BASE                         REG_MDP(0x11F00)
+#define MDP_INTF_1_BASE                         REG_MDP(0x12700)
+#define MDP_INTF_2_BASE                         REG_MDP(0x12F00)
 
-#define MDP_DMA_P_QOS_REMAPPER      REG_MDP(0x90090)
-#define MDP_DMA_P_WATERMARK_0       REG_MDP(0x90094)
-#define MDP_DMA_P_WATERMARK_1       REG_MDP(0x90098)
-#define MDP_DMA_P_WATERMARK_2       REG_MDP(0x9009C)
-#define MDP_PANIC_ROBUST_CTRL       REG_MDP(0x900A0)
-#define MDP_PANIC_LUT0              REG_MDP(0x900A4)
-#define MDP_PANIC_LUT1              REG_MDP(0x900A8)
-#define MDP_ROBUST_LUT              REG_MDP(0x900AC)
+#define MDP_REG_SPLIT_DISPLAY_EN                REG_MDP(0x12f4)
+#define MDP_REG_SPLIT_DISPLAY_UPPER_PIPE_CTL    REG_MDP(0x12F8)
+#define MDP_REG_SPLIT_DISPLAY_LOWER_PIPE_CTL    REG_MDP(0x13F0)
 
-#define MDP_DSI_VIDEO_EN                 REG_MDP(0xF0000)
-#define MDP_DSI_VIDEO_HSYNC_CTL          REG_MDP(0xF0004)
-#define MDP_DSI_VIDEO_VSYNC_PERIOD       REG_MDP(0xF0008)
-#define MDP_DSI_VIDEO_VSYNC_PULSE_WIDTH  REG_MDP(0xF000C)
-#define MDP_DSI_VIDEO_DISPLAY_HCTL       REG_MDP(0xF0010)
-#define MDP_DSI_VIDEO_DISPLAY_V_START    REG_MDP(0xF0014)
-#define MDP_DSI_VIDEO_DISPLAY_V_END      REG_MDP(0xF0018)
-#define MDP_DSI_VIDEO_BORDER_CLR         REG_MDP(0xF0028)
-#define MDP_DSI_VIDEO_HSYNC_SKEW         REG_MDP(0xF0030)
-#define MDP_DSI_VIDEO_CTL_POLARITY       REG_MDP(0xF0038)
-#define MDP_DSI_VIDEO_TEST_CTL           REG_MDP(0xF0034)
+#define MDP_REG_PPB0_CNTL                       REG_MDP(0x1420)
+#define MDP_REG_PPB0_CONFIG                     REG_MDP(0x1424)
 
-#define MDP_DMA_P_START                REG_MDP(0x00044)
-#define MDP_DMA_S_START                REG_MDP(0x00048)
-#define MDP_DISP_INTF_SEL              REG_MDP(0x00038)
-#define MDP_MAX_RD_PENDING_CMD_CONFIG  REG_MDP(0x0004C)
-#define MDP_INTR_ENABLE                REG_MDP(0x00020)
-#define MDP_INTR_CLEAR                 REG_MDP(0x00028)
-#define MDP_DSI_CMD_MODE_ID_MAP        REG_MDP(0xF1000)
-#define MDP_DSI_CMD_MODE_TRIGGER_EN    REG_MDP(0XF1004)
+#define MMSS_MDP_SMP_ALLOC_W_BASE               REG_MDP(0x1080)
+#define MMSS_MDP_SMP_ALLOC_R_BASE               REG_MDP(0x1130)
 
-#define MDP_TEST_MODE_CLK           REG_MDP(0xF0000)
-#define MDP_INTR_STATUS             REG_MDP(0x00054)
+#define MDP_QOS_REMAPPER_CLASS_0                REG_MDP(0x11E0)
 
-#define MDP_CGC_EN                  REG_MDP(0x100)
-#define MDP_AUTOREFRESH_CONFIG_P    REG_MDP(0x34C)
-#define MDP_SYNC_CONFIG_0           REG_MDP(0x300)
+#define VBIF_VBIF_DDR_FORCE_CLK_ON              REG_MDP(0xc8004)
+#define VBIF_VBIF_DDR_OUT_MAX_BURST             REG_MDP(0xc80D8)
+#define VBIF_VBIF_DDR_ARB_CTRL                  REG_MDP(0xc80F0)
+#define VBIF_VBIF_DDR_RND_RBN_QOS_ARB           REG_MDP(0xc8124)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF0        REG_MDP(0xc8160)
+#define VBIF_VBIF_DDR_AXI_AMEMTYPE_CONF1        REG_MDP(0xc8164)
+#define VBIF_VBIF_DDR_OUT_AOOO_AXI_EN           REG_MDP(0xc8178)
+#define VBIF_VBIF_DDR_OUT_AX_AOOO               REG_MDP(0xc817C)
+#define VBIF_VBIF_IN_RD_LIM_CONF0               REG_MDP(0xc80B0)
+#define VBIF_VBIF_IN_RD_LIM_CONF1               REG_MDP(0xc80B4)
+#define VBIF_VBIF_IN_RD_LIM_CONF2               REG_MDP(0xc80B8)
+#define VBIF_VBIF_IN_RD_LIM_CONF3               REG_MDP(0xc80BC)
+#define VBIF_VBIF_IN_WR_LIM_CONF0               REG_MDP(0xc80C0)
+#define VBIF_VBIF_IN_WR_LIM_CONF1               REG_MDP(0xc80C4)
+#define VBIF_VBIF_IN_WR_LIM_CONF2               REG_MDP(0xc80C8)
+#define VBIF_VBIF_IN_WR_LIM_CONF3               REG_MDP(0xc80CC)
+#define VBIF_VBIF_ABIT_SHORT                    REG_MDP(0xc8070)
+#define VBIF_VBIF_ABIT_SHORT_CONF               REG_MDP(0xc8074)
+#define VBIF_VBIF_GATE_OFF_WRREQ_EN             REG_MDP(0xc80A8)
 
 #define SOFT_RESET                  0x118
 #define CLK_CTRL                    0x11C
@@ -315,17 +301,10 @@
 #define HS_TIMER_CTRL               0x0BC
 
 #define TCSR_TZ_WONCE               0x193D000
+#define TCSR_BOOT_MISC_DETECT	    0x193D100
 
-/* Boot config */
-#define SEC_CTRL_CORE_BASE          0x00058000
-#define BOOT_CONFIG_OFFSET          0x0000602C
-#define BOOT_CONFIG_REG             (SEC_CTRL_CORE_BASE + BOOT_CONFIG_OFFSET)
+#define BOOT_ROM_BASE               0x00100000
+#define BOOT_ROM_END                0x00124000  /* Crashes when reading more */
 
-/* For Reading efuse entries to check whether mdp needs to be disabled or not */
-#define EFUSE_OFFSET		    0x00000044
-
-#define SECURITY_CONTROL_CORE_FEATURE_CONFIG0    0x0005E004
-/* EBI2 */
-#define TLMM_EBI2_EMMC_GPIO_CFG     (TLMM_BASE_ADDR + 0x00111000)
-#define TCSR_BOOT_MISC_DETECT       0x193D100
+#define RPM_DATA_RAM                0x00290000
 #endif

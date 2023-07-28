@@ -107,11 +107,7 @@ PrePiMain (
   // Initialize MMU and Memory HOBs (Resource Descriptor HOBs)
   Status = MemoryPeim (UefiMemoryBase, FixedPcdGet32 (PcdSystemMemoryUefiRegionSize));
   ASSERT_EFI_ERROR (Status);
-  /* Clear screen at new FB address */ 
-  UINT8 *base = (UINT8 *)0x8e000000ull;
-  for (UINTN i = 0; i < 0x00800000; i++) {
-    base[i] = 0;
-  }
+
   // Create the Stacks HOB (reserve the memory for all stacks)
   if (ArmIsMpCore ()) {
     StacksSize = PcdGet32 (PcdCPUCorePrimaryStackSize) +
@@ -121,6 +117,14 @@ PrePiMain (
   }
 
   BuildStackHob (StacksBase, StacksSize);
+
+  // Initialize QGIC
+  Status = QGicPeim();
+
+  if (EFI_ERROR(Status)) {
+    DEBUG((EFI_D_ERROR, "Failed to configure GIC\n"));
+    CpuDeadLoop();
+  }
 
   // TODO: Call CpuPei as a library
   BuildCpuHob (ArmGetPhysicalAddressBits (), PcdGet8 (PcdPrePiCpuIoSize));

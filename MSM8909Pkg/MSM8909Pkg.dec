@@ -50,9 +50,7 @@
   gMSM8909PkgTokenSpaceGuid.PcdMipiFrameBufferVisibleWidth|1080|UINT32|0x0000a404
   gMSM8909PkgTokenSpaceGuid.PcdMipiFrameBufferVisibleHeight|1920|UINT32|0x0000a405
   gMSM8909PkgTokenSpaceGuid.IsAndroidPlatform|TRUE|BOOLEAN|0x0000a406
- # gArmPlatformTokenSpaceGuid.PcdSystemMemoryUefiRegionSize|0x08000000|UINT32|0x00000036 #0x00800000
-  gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x10000|UINT32|0x00000038
-  gArmPlatformTokenSpaceGuid.PcdCPUCoreSecondaryStackSize|0x10000|UINT32|0x00000039
+
 
   # Memory allocation
   gMSM8909PkgTokenSpaceGuid.PcdPreAllocatedMemorySize|0x3CD00000|UINT64|0x00000a106
@@ -60,7 +58,7 @@
   # PON Debounce
   gQcomTokenSpaceGuid.PcdPONDebounce|0x00000000|UINT32|0x00000F09
   # QTimer
-  gQcomTokenSpaceGuid.PcdQTimerBase|0xF9021000|UINT64|0x00000050
+  gQcomTokenSpaceGuid.PcdQTimerBase|0x0b021000|UINT64|0x00000050
 
   # GpioTlmmDxe and GpioTlmmInterruptDxe
   gQcomTokenSpaceGuid.PcdGpioTlmmBaseAddress|0|UINT64|0x00000100
