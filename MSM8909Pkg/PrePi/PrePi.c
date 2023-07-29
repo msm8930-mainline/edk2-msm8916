@@ -52,6 +52,26 @@ GetPlatformPpi (
   return EFI_NOT_FOUND;
 }
 
+#define PIPE_SSPP_SRC_FORMAT                    0x30
+#define PIPE_SSPP_SRC_UNPACK_PATTERN            0x34
+#define PIPE_BASE				0x1A17000
+#define PIPE_SSPP_SRC_YSTRIDE			0x24
+
+#define MDP_BASE                    (0x1A00000)
+#define REG_MDP(off)                (MDP_BASE + (off))
+#define MDP_HW_REV                              REG_MDP(0x1000)
+#define MDP_VP_0_VIG_0_BASE                     REG_MDP(0x5000)
+#define MDP_VP_0_VIG_1_BASE                     REG_MDP(0x7000)
+#define MDP_VP_0_RGB_0_BASE                     REG_MDP(0x15000)
+#define MDP_VP_0_RGB_1_BASE                     REG_MDP(0x17000)
+#define MDP_VP_0_DMA_0_BASE                     REG_MDP(0x25000)
+#define MDP_VP_0_DMA_1_BASE                     REG_MDP(0x27000)
+#define MDP_VP_0_MIXER_0_BASE                   REG_MDP(0x45000)
+#define MDP_VP_0_MIXER_1_BASE                   REG_MDP(0x46000)
+
+#define MDP_CTL_0_BASE                          0x1A02000
+#define CTL_FLUSH				0x18
+
 VOID
 PrePiMain (
   IN  UINTN   UefiMemoryBase,
@@ -75,6 +95,27 @@ PrePiMain (
     ((FixedPcdGet64 (PcdFdBaseAddress) >= FixedPcdGet64 (PcdSystemMemoryBase)) &&
      ((UINT64)(FixedPcdGet64 (PcdFdBaseAddress) + FixedPcdGet32 (PcdFdSize)) <= (UINT64)mSystemMemoryEnd))
     );
+
+  /* Switch to 32bpp argb8888 */
+  MmioWrite32(PIPE_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+  MmioWrite32(MDP_VP_0_VIG_0_BASE + PIPE_SSPP_SRC_FORMAT, 0x03008002);
+  MmioWrite32(MDP_VP_0_VIG_1_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+  MmioWrite32(MDP_VP_0_RGB_0_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+  MmioWrite32(MDP_VP_0_RGB_1_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+  MmioWrite32(MDP_VP_0_DMA_0_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+  MmioWrite32(MDP_VP_0_DMA_1_BASE + PIPE_SSPP_SRC_FORMAT, 0x000236FF);
+
+  MmioWrite32(PIPE_BASE + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  
+  MmioWrite32(MDP_VP_0_VIG_0_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  MmioWrite32(MDP_VP_0_VIG_1_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  MmioWrite32(MDP_VP_0_RGB_0_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  MmioWrite32(MDP_VP_0_RGB_1_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  MmioWrite32(MDP_VP_0_DMA_0_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  MmioWrite32(MDP_VP_0_DMA_1_BASE  + PIPE_SSPP_SRC_UNPACK_PATTERN, 0x03008002);
+  
+  MmioWrite32(MDP_CTL_0_BASE + CTL_FLUSH, 720 * 4);
+  MmioWrite32(PIPE_BASE + PIPE_SSPP_SRC_YSTRIDE, (1 << (0)));
 
   // Initialize the architecture specific bits
   ArchInitialize ();

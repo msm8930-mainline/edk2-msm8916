@@ -26,16 +26,15 @@ VOID LibQcomTargetMmcSdhciInit(INIT_SLOT_CB InitSlot)
 
   /* Try slot 1 */
   config.bus_width     = DATA_BUS_WIDTH_8BIT;
-  config.max_clk_rate  = MMC_CLK_200MHZ;
+  config.max_clk_rate  = MMC_CLK_177MHZ;
   config.slot          = 1;
   config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
   config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
   config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
-  config.hs200_support = 1;
   config.hs400_support = 0;
   clk = TLMM_CUR_VAL_16MA;
   cmd = TLMM_CUR_VAL_10MA;
-  dat = TLMM_CUR_VAL_6MA;
+  dat = TLMM_CUR_VAL_10MA;
   reg = SDC1_HDRV_PULL_CTL;
   /* Drive strength configs for sdc pins */
   struct tlmm_cfgs sdc1_hdrv_cfg[] = {
@@ -68,12 +67,11 @@ VOID LibQcomTargetMmcSdhciInit(INIT_SLOT_CB InitSlot)
   config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
   config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
   config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
-  config.hs200_support = 1;
   config.hs400_support = 0;
 
   clk = TLMM_CUR_VAL_16MA;
   cmd = TLMM_CUR_VAL_10MA;
-  dat = TLMM_CUR_VAL_6MA;
+  dat = TLMM_CUR_VAL_10MA;
   reg = SDC2_HDRV_PULL_CTL;
 
   struct tlmm_cfgs sdc2_hdrv_cfg[] = {

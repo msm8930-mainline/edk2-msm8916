@@ -3,8 +3,6 @@
 
 #include <Library/ArmLib.h>
 
-#define MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT 64
-
 /* Below flag is used for system memory */
 #define SYSTEM_MEMORY_RESOURCE_ATTR_CAPABILITIES                               \
   EFI_RESOURCE_ATTRIBUTE_PRESENT | EFI_RESOURCE_ATTRIBUTE_INITIALIZED |        \
@@ -57,20 +55,15 @@ typedef struct {
 #define UNCACHED_UNBUFFERED_XN ARM_MEMORY_REGION_ATTRIBUTE_UNCACHED_UNBUFFERED
 
 static ARM_MEMORY_REGION_DESCRIPTOR_EX gDeviceMemoryDescriptorEx[] = {
-//                                                    EFI_RESOURCE_ EFI_RESOURCE_ATTRIBUTE_        ARM_REGION_ATTRIBUTE_
-//MemBase,   MemSize,   MemLabel(32 Char.), BuildHob, ResourceType, ResourceAttribute, MemoryType, CacheAttributes
+  /*------------- DDR Regions ------ */
+ // { 0x00000000, 0x60000000, "Peripherals", AddMem, MEM_RES, WRITE_THROUGH, MaxMem, ARM_MEMORY_REGION_ATTRIBUTE_DEVICE },
+  { 0x80080000, 0x00200000, "UEFI FD", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
+  { 0x8e000000, 0x00080000, "Display Reserved", AddMem, MEM_RES, WRITE_THROUGH, MaxMem, ARM_MEMORY_REGION_ATTRIBUTE_DEVICE },
+  { 0x8cb00000, 0x133FFFFF, "HLOS 1", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
+  { 0xa0000000, 0x0fffffff, "HLOS 2", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
 
-//------------- DDR Regions ------
-{0x80080000, 0x00200000, "UEFI FD",	AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},
-{0x8e000000, 0x00800000, "Display Reserved", AddMem, MEM_RES, WRITE_THROUGH, MaxMem, WRITE_THROUGH},
-{0x8cb00000, 0x133FFFFF, "HLOS",	AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK},
-
-
-
-//------------- Terminator for MMU ----------
-{0, 0, "Terminator", 0, 0, 0, 0, 0}
-
+  /* ------------- Terminator for MMU ---------- */
+  { 0, 0, "Terminator", 0, 0, 0, 0, (ARM_MEMORY_REGION_ATTRIBUTES)0 }
 };
 
 #endif
-
