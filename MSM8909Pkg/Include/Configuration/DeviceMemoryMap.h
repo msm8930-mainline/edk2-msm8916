@@ -3,6 +3,8 @@
 
 #include <Library/ArmLib.h>
 
+#define MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT 64
+
 /* Below flag is used for system memory */
 #define SYSTEM_MEMORY_RESOURCE_ATTR_CAPABILITIES                               \
   EFI_RESOURCE_ATTRIBUTE_PRESENT | EFI_RESOURCE_ATTRIBUTE_INITIALIZED |        \
@@ -17,9 +19,9 @@ typedef enum { NoHob, AddMem, AddDev, HobOnlyNoCacheSetting, MaxMem } DeviceMemo
 #define MEMORY_REGION_NAME_MAX_LENGTH 32
 
 typedef struct {
+  CHAR8                        Name[MEMORY_REGION_NAME_MAX_LENGTH];
   EFI_PHYSICAL_ADDRESS         Address;
   UINT64                       Length;
-  CHAR8                        Name[MEMORY_REGION_NAME_MAX_LENGTH];
   DeviceMemoryAddHob           HobOption;
   EFI_RESOURCE_TYPE            ResourceType;
   EFI_RESOURCE_ATTRIBUTE_TYPE  ResourceAttribute;
@@ -55,15 +57,23 @@ typedef struct {
 #define UNCACHED_UNBUFFERED_XN ARM_MEMORY_REGION_ATTRIBUTE_UNCACHED_UNBUFFERED
 
 static ARM_MEMORY_REGION_DESCRIPTOR_EX gDeviceMemoryDescriptorEx[] = {
-  /*------------- DDR Regions ------ */
-  { 0x00000000, 0x60000000, "Peripherals", AddMem, MEM_RES, WRITE_THROUGH, MaxMem, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
-  { 0x80080000, 0x00200000, "UEFI FD", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
-  { 0x8e000000, 0x00080000, "Display Reserved", AddMem, MEM_RES, WRITE_THROUGH, MaxMem, ARM_MEMORY_REGION_ATTRIBUTE_DEVICE },
-  { 0x8cb00000, 0x133FFFFF, "HLOS 1", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
-  { 0xa0000000, 0x0fffffff, "HLOS 2", AddMem, SYS_MEM, SYS_MEM_CAP, BsData, ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK },
+    /* Name               Address     Length      HobOption        ResourceAttribute    ArmAttributes
+                                                          ResourceType          MemoryType */
 
-  /* ------------- Terminator for MMU ---------- */
-  { 0, 0, "Terminator", 0, 0, 0, 0, (ARM_MEMORY_REGION_ATTRIBUTES)0 }
-};
+    /* DDR Regions */
+    {"Peripherals",       0x00000000, 0x80000000, AddMem, MEM_RES, UNCACHEABLE,  RtCode, ARM_MEMORY_REGION_ATTRIBUTE_DEVICE}, // todo?
+    {"UEFI FD",           0x80080000, 0x00200000, AddMem, SYS_MEM, SYS_MEM_CAP,  BsCode, WRITE_BACK}, // good
+    {"Display Reserved",  0x8e000000, 0x00080000, AddMem, MEM_RES, WRITE_THROUGH, MaxMem, WRITE_THROUGH}, // good
+
+
+    /* RAM partition regions */
+    {"RAM Partition",     0x8cb00000, 0x13400000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
+    {"RAM Partition",     0xa0000000, 0x10000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
+    /* carveout */
+    {"RAM Partition",     0xc0000000, 0x30000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
+
+
+    /* Terminator for MMU */
+    {"Terminator", 0, 0, 0, 0, 0, 0, 0}};
 
 #endif

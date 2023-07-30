@@ -73,39 +73,7 @@ Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
 
         // Storage - eMMC 
         //
-       /* Device (SDC1)
-        {
-            Name (_DEP, Package(0x1) {
-                \_SB_.PEP0,
-            })
-            
-            Name (_HID, "QCOM2466")
-            Name (_CID, "ACPI\QCOM2466")
-            Name (_UID, 0)
- 
-            Method (_CRS, 0x0, NotSerialized) {
-                Name (RBUF, ResourceTemplate ()
-                {
-                    // SDCC1 register address space
-                    Memory32Fixed (ReadWrite, 0x7824900, 0x00000200)
- 
-                    Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive, , , ) {155}
-                    //FixedDma(46,0, , )
-                    //FixedDma(47,1, , )
-                })
-                Return (RBUF)
-            }
- 
-            Device (EMMC) {
-                Method (_ADR) {
-                    Return (8)
-                }
- 
-                Method (_RMV) {
-                    Return (0)
-                }
-            }
-        }*/
+
 
 	//
         // ASL Bridge Device
@@ -309,7 +277,7 @@ Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
         //
         // IPC Router
         //
-        Device (IPC0)
+        /*Device (IPC0)
         {
             Name (_DEP, Package(0x1)
             {
@@ -333,65 +301,14 @@ Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
 		Device (QCDB)
         {
             Name (_HID, "QCOM1204")
-        }	
+        }	*/
 
 
-        Include("Qdss.asl")
+        // Include("Qdss.asl")
 
-        //
-        // Remote FS
-        //
-        Device (RFS0)
-        {
-             Name (_DEP, Package(0x1)
-             {
-                 \_SB_.IPC0
-             })
-             Name (_HID, "QCOM2423")
 
-             Method (_CRS, 0x0, NotSerialized) {
-                 Name (RBUF, ResourceTemplate ()
-                 {
-                     // RemoteFS Shared Memory
-                     Memory32Fixed (ReadWrite, 0x86700000, 0xE0000)
-
-                     // RFSA Shared Memory
-                     Memory32Fixed (ReadWrite, 0x867E0000 , 0x20000)
-                 })
-                 Return (RBUF)
-             }
-        }
 	//
-    // Qualcomm GPS driver
-    //
-    Device (GPS)
-    {
-	Name (_DEP, Package(0x1)
-	{
-	\_SB_.SMD0
-	})
-    
-    Name (_HID, "QCOM24B4")
-	//Name (_CID, "ACPI\QCOM24B4")
-	Name (_UID, 0)
-    }
-//  BCryptCipher_KM Driver (qsecuremsm)
-        //
-        Device (QBCC)
-        {
-            Name (_HID, "QCOM241D")
-            Name (_UID, 0)
-			Method (_CRS, 0x0, NotSerialized) {
-                Name (RBUF, ResourceTemplate ()
-                {
-					// PRNG_PRNG register address space
-					Memory32Fixed (ReadWrite, 0x00022000, 0x00000140)
-					// CRYPTO0_CRYPTO TOP  register address space 
-                    Memory32Fixed (ReadWrite, 0x0073A000, 0x00006000) 
-                })
-                Return (RBUF)
-            }
-        }		
+		
 
     // Include("data_common.asl")
 
