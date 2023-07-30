@@ -92,7 +92,7 @@
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
 
   # SimpleFbDxe
-  FrameBufferBltLib|MSM8909Pkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
+  FrameBufferBltLib|MdeModulePkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
   
     # Platform Drivers
 !if $(USE_SCREEN_FOR_SERIAL_OUTPUT) == 1
@@ -222,6 +222,11 @@
   gArmTokenSpaceGuid.PcdArmArchTimerIntrNum|0x12
   gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum|0x13
 
+  #gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum|27 # Virtual PPI
+  #gArmTokenSpaceGuid.PcdArmArchTimerHypIntrNum|26 # Hypervisor PPI
+  #gArmTokenSpaceGuid.PcdArmArchTimerSecIntrNum|29 # Physical Secure PPI
+  #gArmTokenSpaceGuid.PcdArmArchTimerIntrNum|30 # Physical Non-Secure PPI
+
   # GUID of the UI app
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
 
@@ -286,7 +291,11 @@
   MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleRuntimeDxe.inf
   EmbeddedPkg/EmbeddedMonotonicCounter/EmbeddedMonotonicCounter.inf
   MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
-  EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf
+  EmbeddedPkg/ResetRuntimeDxe/ResetRuntimeDxe.inf
+  EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf {
+    <LibraryClasses>
+	  RealTimeClockLib|MSM8909Pkg/Library/VirtualRealTimeClockLib/VirtualRealTimeClockLib.inf
+  }
   EmbeddedPkg/MetronomeDxe/MetronomeDxe.inf
 
   MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
@@ -365,7 +374,7 @@
   MdeModulePkg/Universal/Acpi/AcpiTableDxe/AcpiTableDxe.inf
   MdeModulePkg/Universal/Acpi/AcpiPlatformDxe/AcpiPlatformDxe.inf
   MdeModulePkg/Universal/Acpi/BootGraphicsResourceTableDxe/BootGraphicsResourceTableDxe.inf
-  # MSM8909Pkg/AcpiTables/AcpiTables.inf
+  MSM8909Pkg/AcpiTables/AcpiTables.inf
 
   #
   # SMBIOS Support

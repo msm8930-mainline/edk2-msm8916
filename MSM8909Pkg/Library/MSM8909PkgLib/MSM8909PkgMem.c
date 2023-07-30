@@ -18,7 +18,7 @@
 #include <Library/PcdLib.h>
 #include <Library/IoLib.h>
 #include <Library/MemoryAllocationLib.h>
-#include <Configuration/DeviceMemoryMap.h>
+//#include <Configuration/DeviceMemoryMap.h>
 
 // The total number of descriptors, including the final "end-of-table" descriptor.
 #define MAX_VIRTUAL_MEMORY_MAP_DESCRIPTORS 12
@@ -71,7 +71,7 @@ ArmPlatformGetVirtualMemoryMap (
   EFI_PEI_HOB_POINTERS          NextHob;
   UINT64                        ResourceLength;
   EFI_PHYSICAL_ADDRESS          ResourceTop;
-  UINTN				i = 0;
+ // UINTN				i = 0;
 
   ResourceAttributes = (
     EFI_RESOURCE_ATTRIBUTE_PRESENT |
@@ -141,16 +141,25 @@ ArmPlatformGetVirtualMemoryMap (
 
   CacheAttributes = DDR_ATTRIBUTES_CACHED;
 
-  Index = -1;
+  Index = 0;
 
-  /* Run through memory descriptors */
-  while (gDeviceMemoryDescriptorEx[i].ArmAttributes != (ARM_MEMORY_REGION_ATTRIBUTES)0) {
-    VirtualMemoryTable[++Index].PhysicalBase  = gDeviceMemoryDescriptorEx[i].Address;
-    VirtualMemoryTable[Index].VirtualBase   = gDeviceMemoryDescriptorEx[i].Address;
-    VirtualMemoryTable[Index].Length        = gDeviceMemoryDescriptorEx[i].Length;
-    VirtualMemoryTable[Index].Attributes    = gDeviceMemoryDescriptorEx[i].ArmAttributes;
-    i++;
-  }
+  // DDR - 4.0GB section
+  VirtualMemoryTable[Index].PhysicalBase    = PcdGet64 (PcdSystemMemoryBase);
+  VirtualMemoryTable[Index].VirtualBase     = PcdGet64 (PcdSystemMemoryBase);
+  VirtualMemoryTable[Index].Length          = PcdGet64 (PcdSystemMemorySize);
+  VirtualMemoryTable[Index].Attributes      = CacheAttributes;
+
+  // SDM845 SOC peripherals
+  VirtualMemoryTable[++Index].PhysicalBase  = SDM845_PERIPH_BASE;
+  VirtualMemoryTable[Index].VirtualBase     = SDM845_PERIPH_BASE;
+  VirtualMemoryTable[Index].Length          = SDM845_PERIPH_SZ;
+  VirtualMemoryTable[Index].Attributes      = ARM_MEMORY_REGION_ATTRIBUTE_DEVICE;
+
+  // End of Table
+  VirtualMemoryTable[++Index].PhysicalBase  = 0;
+  VirtualMemoryTable[Index].VirtualBase     = 0;
+  VirtualMemoryTable[Index].Length          = 0;
+  VirtualMemoryTable[Index].Attributes      = (ARM_MEMORY_REGION_ATTRIBUTES)0;
 
   /* End of table */
   VirtualMemoryTable[++Index].PhysicalBase  = 0;
