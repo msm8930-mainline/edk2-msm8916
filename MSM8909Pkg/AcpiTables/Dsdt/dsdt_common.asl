@@ -51,7 +51,7 @@ Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
             Name (_HID, "ACPI0007")
             Name (_UID, 0)
         }
-        Device(CPU1)
+        /*Device(CPU1)
         {
             Name (_HID, "ACPI0007")
             Name (_UID, 1)
@@ -65,7 +65,7 @@ Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
         {
             Name (_HID, "ACPI0007")
             Name (_UID, 3)
-        }
+        }*/
        // Include("BearSmmu.asl")
         //Include("bam.asl")
       

@@ -1,7 +1,12 @@
 #ifndef _DEVICE_MEMORY_MAP_H_
 #define _DEVICE_MEMORY_MAP_H_
 
+#include <PiPei.h>
+
 #include <Library/ArmLib.h>
+#include <Library/HobLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/BaseLib.h>
 
 #define MAX_ARM_MEMORY_REGION_DESCRIPTOR_COUNT 64
 
@@ -48,7 +53,7 @@ typedef struct {
 #define BsCode EfiBootServicesCode
 #define RtCode EfiRuntimeServicesCode
 
-#define NS_DEVICE ARM_MEMORY_REGION_ATTRIBUTE_NONSECURE_DEVICE
+#define NS_DEVICE ARM_MEMORY_REGION_ATTRIBUTE_DEVICE
 #define WRITE_THROUGH ARM_MEMORY_REGION_ATTRIBUTE_WRITE_THROUGH
 #define WRITE_THROUGH_XN ARM_MEMORY_REGION_ATTRIBUTE_WRITE_THROUGH
 #define WRITE_BACK ARM_MEMORY_REGION_ATTRIBUTE_WRITE_BACK
@@ -61,14 +66,28 @@ static ARM_MEMORY_REGION_DESCRIPTOR_EX gDeviceMemoryDescriptorEx[] = {
                                                           ResourceType          MemoryType */
 
     /* DDR Regions */
-    {"Peripherals",       0x00000000, 0x80000000, AddMem, MEM_RES, UNCACHEABLE,  RtCode, ARM_MEMORY_REGION_ATTRIBUTE_DEVICE}, // todo?
-    {"UEFI FD",           0x80080000, 0x00200000, AddMem, SYS_MEM, SYS_MEM_CAP,  BsCode, WRITE_BACK}, // good
-    {"Display Reserved",  0x8e000000, 0x00080000, AddMem, MEM_RES, WRITE_THROUGH, MaxMem, WRITE_THROUGH}, // good
+    {"Peripherals",       0x00000000, 0x80000000, AddMem, MEM_RES, UNCACHEABLE,  RtCode, NS_DEVICE}, // todo?
 
+    {"UEFI FD",           0x80080000, 0x00200000, AddMem, SYS_MEM, SYS_MEM_CAP,  BsCode, WRITE_BACK},
+    
+    {"MPPark Code",       0x80300000, 0x00040000, AddMem, MEM_RES, UNCACHEABLE,  RtCode, UNCACHED_UNBUFFERED},
+    {"DBG2",              0x80381000, 0x00004000, AddMem, SYS_MEM, SYS_MEM_CAP,  LdData, UNCACHED_UNBUFFERED},
+   // {"UEFI Info Block",   0x80389000, 0x00001000, AddMem, SYS_MEM, SYS_MEM_CAP,  RtData, UNCACHED_UNBUFFERED},
+    //{"Reset Data",        0x8038a000, 0x00004000, AddMem, SYS_MEM, SYS_MEM_CAP,  RtData, UNCACHED_UNBUFFERED},
+    {"Reser. Uncached0",  0x8038e000, 0x00072000, AddMem, SYS_MEM, SYS_MEM_CAP,  BsData, UNCACHED_UNBUFFERED},
+    {"UEFI Stack",        0x80C00000, 0x00040000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},
+    {"CPU Vectors",       0x80C40000, 0x00010000, AddMem, SYS_MEM, SYS_MEM_CAP, BsCode, WRITE_BACK},
+    {"Reser. Cached 0",   0x80C50000, 0x000B0000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},
+    {"TZ Apps",           0x85A00000, 0x00E00000, AddMem, MEM_RES, SYS_MEM_CAP,  Reserv, NS_DEVICE},
+    {"SMEM",              0x86300000, 0x00100000, AddMem, MEM_RES, UNCACHEABLE,  Reserv, UNCACHED_UNBUFFERED},
+    {"TZ/HYP",            0x86400000, 0x00280000, AddMem, SYS_MEM, SYS_MEM_CAP,  Reserv, NS_DEVICE},
+ 
+    {"Display Reserved",  0x8e000000, 0x00080000, AddMem, MEM_RES, WRITE_THROUGH,MaxMem, WRITE_THROUGH},
 
     /* RAM partition regions */
-    {"RAM Partition",     0x8cb00000, 0x13400000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
-    {"RAM Partition",     0xa0000000, 0x10000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
+    {"RAM Partition",     0x8cb00000, 0x13400000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
+    /* carveout */
+    {"RAM Partition",     0xa0000000, 0x10000000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
     /* carveout */
     {"RAM Partition",     0xc0000000, 0x30000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
 
