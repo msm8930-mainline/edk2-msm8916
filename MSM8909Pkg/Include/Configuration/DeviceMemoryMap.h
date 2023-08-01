@@ -78,14 +78,16 @@ static ARM_MEMORY_REGION_DESCRIPTOR_EX gDeviceMemoryDescriptorEx[] = {
     {"UEFI Stack",        0x80C00000, 0x00040000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},
     {"CPU Vectors",       0x80C40000, 0x00010000, AddMem, SYS_MEM, SYS_MEM_CAP, BsCode, WRITE_BACK},
     {"Reser. Cached 0",   0x80C50000, 0x000B0000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},
-    {"TZ Apps",           0x85A00000, 0x00E00000, AddMem, MEM_RES, SYS_MEM_CAP,  Reserv, NS_DEVICE},
+    {"TZ Apps",           0x85A00000, 0x00500000, AddMem, MEM_RES, SYS_MEM_CAP,  Reserv, NS_DEVICE},
     {"SMEM",              0x86300000, 0x00100000, AddMem, MEM_RES, UNCACHEABLE,  Reserv, UNCACHED_UNBUFFERED},
     {"TZ/HYP",            0x86400000, 0x00280000, AddMem, SYS_MEM, SYS_MEM_CAP,  Reserv, NS_DEVICE},
  
-    {"Display Reserved",  0x8e000000, 0x00080000, AddMem, MEM_RES, WRITE_THROUGH,MaxMem, WRITE_THROUGH},
+    {"Display Reserved",  0x8e000000, 0x00800000, AddMem, MEM_RES, WRITE_THROUGH,MaxMem, WRITE_THROUGH},
 
     /* RAM partition regions */
-    {"RAM Partition",     0x8cb00000, 0x13400000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
+    {"RAM Partition",     0x8cb00000, 0x01500000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
+    /* Avoid Display Reserved */
+    {"RAM Partition",     0x8e800000, 0x11700000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
     /* carveout */
     {"RAM Partition",     0xa0000000, 0x10000000, AddMem, SYS_MEM, SYS_MEM_CAP,  Conv,   WRITE_BACK_XN},
     /* carveout */

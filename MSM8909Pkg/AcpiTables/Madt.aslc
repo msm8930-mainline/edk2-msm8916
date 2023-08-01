@@ -1,15 +1,15 @@
 /** @file
- *  Multiple APIC Description Table (MADT)
+ *	Multiple APIC Description Table (MADT)
  *
- *  Copyright (c) 2012 - 2014, ARM Limited. All rights reserved.
- *  Copyright (c) 2018, Hisilicon Limited. All rights reserved.
- *  Copyright (c) 2015, Linaro Limited. All rights reserved.
- *  Copyright (c) 2019-2021 Bingxing Wang. All rights reserved.
+ *	Copyright (c) 2012 - 2014, ARM Limited. All rights reserved.
+ *	Copyright (c) 2018, Hisilicon Limited. All rights reserved.
+ *	Copyright (c) 2015, Linaro Limited. All rights reserved.
+ *	Copyright (c) 2019-2021 Bingxing Wang. All rights reserved.
+ *	Copyright (c) 2022-2023 Ivaylo Ivanov. All rights reserved.
  *
- *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *	SPDX-License-Identifier: BSD-2-Clause-Patent
  *
- *  Based on the files under ArmPlatformPkg/ArmJunoPkg/AcpiTables/
- *
+ *	Based on the files under ArmPlatformPkg/ArmJunoPkg/AcpiTables/
  **/
 
 #include <Base.h>
@@ -25,71 +25,70 @@
 //
 #pragma pack(1)
 
-#define ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE_REVISION 0x00000003
+#define EFI_ACPI_6_0_GIC_DISABLED			0
+
+#define ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE_REVISION	0x00000003
 
 //
-// Local APIC GIC address
-// These are physical addresses on Versatile Express
+// Local APIC GIC address pulled from:
+// lk/platform/msm8916/include/platform/iomap.h
 //
-#define DISTRIBUTOR_PHYSICAL_ADDRESS  0x0B000000
-#define ACPI_LOCAL_APIC_ADDRESS       (0x0B000000+0x2000)
+
+#define APPS_SS_BASE				0x0b000000
+#define ACPI_LOCAL_APIC_ADDRESS		(APPS_SS_BASE + 0x2000)
 
 //These addresses are defined by the MP shared region defined in the UEFI memory map.
-#define MP_MAILBOX_ADDRESS_GIC0         0x80301000
-#define MP_MAILBOX_ADDRESS_GIC1         0x80302000
-#define MP_MAILBOX_ADDRESS_GIC2         0x80303000
-#define MP_MAILBOX_ADDRESS_GIC3         0x80304000
-
-#define ACPI_PROCESSOR_LOCAL_GIC              11
-#define ACPI_GIC_DISTRIBUTOR                  12
+#define MP_MAILBOX_ADDRESS_GIC0		0x80301000
+#define MP_MAILBOX_ADDRESS_GIC1		0x80302000
+#define MP_MAILBOX_ADDRESS_GIC2		0x80303000
+#define MP_MAILBOX_ADDRESS_GIC3		0x80304000
 
 typedef struct {
-  EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER Header;
-  EFI_ACPI_6_0_GIC_STRUCTURE GicInterfaces[4];
-  EFI_ACPI_6_0_GIC_DISTRIBUTOR_STRUCTURE GicDistributor;
+	EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER Header;
+	EFI_ACPI_6_0_GIC_STRUCTURE GicInterfaces[4];
+	EFI_ACPI_6_0_GIC_DISTRIBUTOR_STRUCTURE GicDistributor;
 } EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE;
 
 #pragma pack()
 
 EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE Madt = {
-    {
-        ARM_ACPI_HEADER(EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_SIGNATURE,
-                        EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE,
-                        EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_REVISION),
-        //
-        // MADT specific fields
-        //
-        ACPI_LOCAL_APIC_ADDRESS, // LocalApicAddress
-        0,          // Flags
-    },
-    {
-        // Format: EFI_ACPI_6_0_GICC_STRUCTURE_INIT(GicId, AcpiCpuUid, Mpidr,
-        // Flags, PmuIrq,
-        //      GicBase, GicVBase, GicHBase, GsivId, GicRBase, Efficiency)
-        // Note: The GIC Structure of the primary CPU must be the first entry
-        // (see note in 5.2.12.14 GICC Structure of
-        //       ACPI v5.1).
-        //       The cores from a same cluster are kept together. It is not an
-        //       ACPI requirement but in case the OSPM uses the ACPI ARM Parking
-        //       protocol, it might want to wake up the cores in the order of
-        //       this table.
-        EFI_ACPI_6_0_GICC_STRUCTURE_INIT(0, 0, 0, EFI_ACPI_6_0_GIC_ENABLED,
-                                         23, ACPI_LOCAL_APIC_ADDRESS, 0,
-                                         0, 25, 0, 0),
-        EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_ENABLED,
-                                         23, ACPI_LOCAL_APIC_ADDRESS, 0,
-                                         0, 25, 0, 0),
-        EFI_ACPI_6_0_GICC_STRUCTURE_INIT(2, 2, 2, EFI_ACPI_6_0_GIC_ENABLED,
-                                         23, ACPI_LOCAL_APIC_ADDRESS, 0,
-                                         0, 25, 0, 0),
-        EFI_ACPI_6_0_GICC_STRUCTURE_INIT(3, 3, 3, EFI_ACPI_6_0_GIC_ENABLED,
-                                         23, ACPI_LOCAL_APIC_ADDRESS, 0,
-                                         0, 25, 0, 0),
-    },
-    // GIC Distributor
-    EFI_ACPI_6_0_GIC_DISTRIBUTOR_INIT(0, FixedPcdGet32(PcdGicDistributorBase),
-                                      0, 2),
-    // End of the table
+	{
+		ARM_ACPI_HEADER(EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_SIGNATURE,
+		                EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE,
+		                EFI_ACPI_6_2_MULTIPLE_APIC_DESCRIPTION_TABLE_REVISION),
+		/*
+		 * MADT specific fields
+		 */
+		ACPI_LOCAL_APIC_ADDRESS,	// LocalApicAddress
+		0,				// Flags
+	},
+	{
+		// Format: EFI_ACPI_6_0_GICC_STRUCTURE_INIT(GicId, AcpiCpuUid, Mpidr,
+		// Flags, PmuIrq,
+		//		GicBase, GicVBase, GicHBase, GsivId, GicRBase, Efficiency)
+		// Note: The GIC Structure of the primary CPU must be the first entry
+		// (see note in 5.2.12.14 GICC Structure of ACPI v5.1).
+		// The cores from a same cluster are kept together. It is not an
+		// ACPI requirement but in case the OSPM uses the ACPI ARM Parking
+		// protocol, it might want to wake up the cores in the order of this table.
+
+		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(0, 0, 0, EFI_ACPI_6_0_GIC_ENABLED,
+		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 0, 0x19, 0, 0),
+		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_DISABLED,
+		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 0, 0x19, 0, 0),
+		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(2, 2, 2, EFI_ACPI_6_0_GIC_DISABLED,
+		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 0, 0x19, 0, 0),
+		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(3, 3, 3, EFI_ACPI_6_0_GIC_DISABLED,
+		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 0, 0x19, 0, 0),
+	},
+	// GIC Distributor
+	EFI_ACPI_6_0_GIC_DISTRIBUTOR_INIT(0, FixedPcdGet32(PcdGicDistributorBase),
+	                                  0, 2),
+	// End of the table
 };
 
 //
