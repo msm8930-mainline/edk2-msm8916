@@ -126,9 +126,9 @@ SMBIOS_TABLE_TYPE0 mBIOSInfoType0 = {
     0xFF, // EmbeddedControllerFirmwareMinorRelease
 };
 
-CHAR8 *mBIOSInfoType0Strings[] = {"EDK2 authors", // Vendor String
+CHAR8 *mBIOSInfoType0Strings[] = {"The Samsung slave", // Vendor String
                                   "1.0", // BiosVersion String
-                                  "2019/11/19", // BiosReleaseDate String
+                                  "2023/08/07", // BiosReleaseDate String
                                   NULL};
 
 /***********************************************************************
@@ -201,7 +201,7 @@ SMBIOS_TABLE_TYPE3 mEnclosureInfoType3 = {
     0,                         // ContainedElementRecordLength;
     {{0}},                     // ContainedElements[1];
 };
-CHAR8 *mEnclosureInfoType3Strings[] = {"Prime G2", "1", "Unknown", "",
+CHAR8 *mEnclosureInfoType3Strings[] = {"Galaxy J5 2015", "1", "Unknown", "",
                                        NULL};
 
 /***********************************************************************
@@ -275,8 +275,8 @@ SMBIOS_TABLE_TYPE4 mProcessorInfoType4 = {
         0  // ProcessorVoltageIndicateLegacy      :1;
     },
     0,                     // ExternalClock;
-    533,                  // MaxSpeed;
-    533,                  // CurrentSpeed;
+    1200,                  // MaxSpeed;
+    1200,                  // CurrentSpeed;
     0x41,                  // Status;
     ProcessorUpgradeOther, // ProcessorUpgrade;      ///< The enumeration value
                            // from PROCESSOR_UPGRADE.
@@ -289,14 +289,14 @@ SMBIOS_TABLE_TYPE4 mProcessorInfoType4 = {
     FixedPcdGet32(PcdCoreCount), // CoreCount;
     FixedPcdGet32(PcdCoreCount), // EnabledCoreCount;
     FixedPcdGet32(PcdCoreCount), // ThreadCount;
-    0x8,                        // ProcessorCharacteristics;
+    0xAC,                        // ProcessorCharacteristics;
     ProcessorFamilyARM,          // ARM Processor Family;
 };
 
 CHAR8 *mProcessorInfoType4Strings[] = {
   "Socket",
   "Qualcomm Inc.",
-  "Snapdragon MSM8916",
+  "Qualcomm Snapdragon 410 Processor (8916)",
   "MSM8916",
   NULL
 };
@@ -307,9 +307,9 @@ CHAR8 *mProcessorInfoType4Strings[] = {
 SMBIOS_TABLE_TYPE7 mCacheInfoType7 = {
     {EFI_SMBIOS_TYPE_CACHE_INFORMATION, sizeof(SMBIOS_TABLE_TYPE7), 0},
     1,      // SocketDesignation String
-    0x0180, // Cache Configuration
-    0x0020, // Maximum Size 32k
-    0x0020, // Install Size 32k
+    0x0201, // Cache Configuration
+    0x8008, // Maximum Size 256k
+    0x8008, // Install Size 256k
     {
         // Supported SRAM Type
         0, // Other             :1
@@ -335,9 +335,9 @@ SMBIOS_TABLE_TYPE7 mCacheInfoType7 = {
     0,                     // Cache Speed unknown
     CacheErrorParity,      // Error Correction Multi
     CacheTypeUnified,      // System Cache Type
-    CacheAssociativity2Way // Associativity
+    CacheAssociativity8Way // Associativity
 };
-CHAR8 *mCacheInfoType7Strings[] = {"L1 Cache", NULL};
+CHAR8 *mCacheInfoType7Strings[] = {"L2 Cache", NULL};
 
 /***********************************************************************
         SMBIOS data definition  TYPE9  System Slot Information
@@ -391,10 +391,10 @@ SMBIOS_TABLE_TYPE16 mPhyMemArrayInfoType16 = {
     MemoryErrorCorrectionUnknown,   // MemoryErrorCorrection;          ///< The
                                     // enumeration value from
                                     // MEMORY_ERROR_CORRECTION.
-    0x233FFFFE,                     // MaximumCapacity;
+    0x60000000,                     // MaximumCapacity;
     0xFFFE,                         // MemoryErrorInformationHandle;
     1,                              // NumberOfMemoryDevices;
-    0x233FFFFEULL,                  // ExtendedMaximumCapacity;
+    0x60000000ULL,                  // ExtendedMaximumCapacity;
 };
 CHAR8 *mPhyMemArrayInfoType16Strings[] = {NULL};
 
@@ -408,14 +408,14 @@ SMBIOS_TABLE_TYPE17 mMemDevInfoType17 = {
     0xFFFE, // MemoryErrorInformationHandle;
     0xFFFF, // TotalWidth;
     0xFFFF, // DataWidth;
-    0x0233, // Size; // When bit 15 is 0: Size in MB
+    0x0600, // Size; // When bit 15 is 0: Size in MB
             // When bit 15 is 1: Size in KB, and continues in ExtendedSize
     MemoryFormFactorTsop, // FormFactor;                     ///< The
                           // enumeration value from MEMORY_FORM_FACTOR.
     0xff,                 // DeviceSet;
     0,                    // DeviceLocator String
     0,                    // BankLocator String
-    MemoryTypeDdr3, // MemoryType;                     ///< The enumeration
+    MemoryTypeLpddr3, // MemoryType;                     ///< The enumeration
                     // value from MEMORY_DEVICE_TYPE.
     {
         // TypeDetail;
@@ -436,7 +436,7 @@ SMBIOS_TABLE_TYPE17 mMemDevInfoType17 = {
         0, // Unbuffered      :1;
         0, // Reserved1       :1;
     },
-    400, // Speed;
+    533, // Speed;
     0,    // Manufacturer String
     0,    // SerialNumber String
     0,    // AssetTag String

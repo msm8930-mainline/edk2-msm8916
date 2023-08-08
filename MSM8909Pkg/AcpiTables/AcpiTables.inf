@@ -22,12 +22,17 @@
   VERSION_STRING                 = 1.0
 
 [Sources]
-  Dbg2.aslc
+  # Dbg2.aslc
   Facs.aslc
   Fadt.aslc
-  Gtdt.aslc
-  Madt.aslc
+  # Gtdt.aslc
+  # Madt.aslc
   Dsdt/Dsdt.asl
+
+[Binaries.AARCH64]
+  ASL|MSM8909Pkg/PreBuiltAcpis/dbg2.acp
+  ASL|MSM8909Pkg/PreBuiltAcpis/madt.acp
+  ASL|MSM8909Pkg/PreBuiltAcpis/gtdt.acp
 
 [Packages]
   ArmPkg/ArmPkg.dec

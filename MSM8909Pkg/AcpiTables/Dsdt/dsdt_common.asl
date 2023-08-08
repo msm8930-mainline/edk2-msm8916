@@ -253,6 +253,20 @@ Device (SMD0)
 
 #endif
 
+Device (EMMC)
+{
+	Method (_ADR, 0, NotSerialized)  // _ADR: Address
+	{
+		Return (0x08)
+	}
+
+	Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+	{
+		Return (Zero)
+	}
+}
+
+//
 // WWAN Coexistence Manager
 //
 Device (COEX)

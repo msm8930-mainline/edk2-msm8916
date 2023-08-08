@@ -1,0 +1,3131 @@
+diff --git a/MSM8909Pkg/AcpiTables/AcpiTables.inf b/MSM8909Pkg/AcpiTables/AcpiTables.inf
+index 4f33248..6c12531 100644
+--- a/MSM8909Pkg/AcpiTables/AcpiTables.inf
++++ b/MSM8909Pkg/AcpiTables/AcpiTables.inf
+@@ -22,13 +22,23 @@
+   VERSION_STRING                 = 1.0
+ 
+ [Sources]
+-  Dbg2.aslc
++  #Dbg2.aslc
++  #MSM8909Pkg/PreBuiltAcpis/dbg2.dsl
+   Facs.aslc
+   Fadt.aslc
+-  Gtdt.aslc
+-  Madt.aslc
++  #Gtdt.aslc
++  #MSM8909Pkg/PreBuiltAcpis/gtdt.dsl
++  #Madt.aslc
++  #MSM8909Pkg/PreBuiltAcpis/madt.dsl
+   Dsdt/Dsdt.asl
+ 
++[Binaries.AARCH64]
++  ASL|MSM8909Pkg/PreBuiltAcpis/dbg2.acp
++  ASL|MSM8909Pkg/PreBuiltAcpis/madt.acp
++  ASL|MSM8909Pkg/PreBuiltAcpis/gtdt.acp
++  #ASL|MSM8909Pkg/PreBuiltAcpis/dsdt.aml
++  
++
+ [Packages]
+   ArmPkg/ArmPkg.dec
+   ArmPlatformPkg/ArmPlatformPkg.dec
+diff --git a/MSM8909Pkg/AcpiTables/Dsdt/Dsdt.asl b/MSM8909Pkg/AcpiTables/Dsdt/Dsdt.asl
+index d594deb..0270307 100644
+--- a/MSM8909Pkg/AcpiTables/Dsdt/Dsdt.asl
++++ b/MSM8909Pkg/AcpiTables/Dsdt/Dsdt.asl
+@@ -19,7 +19,7 @@
+ //
+ // NOTE: The 3rd parameter (i.e. ComplianceRevision) must be >=2 for 64-bit integer support.
+ //
+-DefinitionBlock("DSDT.AML", "DSDT", 0x02, "QCOMM ", "MSM8916 ", 3)
++DefinitionBlock("DSDT.AML", "DSDT", 0x02, "QCOM  ", "QCOMEDK2", 3)
+ {
+ 	Scope(\_SB_) {
+ 		
+diff --git a/MSM8909Pkg/AcpiTables/Dsdt/dsdt_common.asl b/MSM8909Pkg/AcpiTables/Dsdt/dsdt_common.asl
+index c844b2f..b7e9805 100644
+--- a/MSM8909Pkg/AcpiTables/Dsdt/dsdt_common.asl
++++ b/MSM8909Pkg/AcpiTables/Dsdt/dsdt_common.asl
+@@ -253,6 +253,20 @@ Device (SMD0)
+ 
+ #endif
+ 
++Device (EMMC)
++{
++	Method (_ADR, 0, NotSerialized)  // _ADR: Address
++	{
++		Return (0x08)
++	}
++
++	Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
++	{
++		Return (Zero)
++	}
++}
++
++//
+ // WWAN Coexistence Manager
+ //
+ Device (COEX)
+diff --git a/MSM8909Pkg/AcpiTables/Gtdt.aslc b/MSM8909Pkg/AcpiTables/Gtdt.aslc
+index b1c85e4..9d6650f 100644
+--- a/MSM8909Pkg/AcpiTables/Gtdt.aslc
++++ b/MSM8909Pkg/AcpiTables/Gtdt.aslc
+@@ -27,7 +27,9 @@
+ #define GTDT_GLOBAL_FLAGS		(GTDT_GLOBAL_FLAGS_NOT_MAPPED | GTDT_GLOBAL_FLAGS_LEVEL)
+ #define GTDT_GTIMER_FLAGS		(GTDT_TIMER_ACTIVE_LOW | GTDT_TIMER_LEVEL_TRIGGERED)
+ 
+-#define QTIMER_PHYS_ADDR		0x0b020000
++//#define QTIMER_PHYS_ADDR		0x0b020000
++/* Seems like this worked for msm8998 at the beginning? */
++#define QTIMER_PHYS_ADDR		0xFFFFFFFFFFFFFFFF
+ 
+ #pragma pack(1)
+ 
+@@ -44,19 +46,19 @@ EFI_ACPI_6_3_GENERIC_TIMER_DESCRIPTION_TABLES Gtdt = {
+ 			EFI_ACPI_6_3_GENERIC_TIMER_DESCRIPTION_TABLES,
+ 			EFI_ACPI_6_3_GENERIC_TIMER_DESCRIPTION_TABLE_REVISION
+ 		),
+-		QTIMER_PHYS_ADDR,				// UINT64	PhysicalAddress
+-		0,						// UINT32	Reserved
+-		18,						// UINT32	SecurePL1TimerGSIV
+-		GTDT_GTIMER_FLAGS,				// UINT32	SecurePL1TimerFlags
+-		19,						// UINT32	NonSecurePL1TimerGSIV
+-		GTDT_GTIMER_FLAGS,				// UINT32	NonSecurePL1TimerFlags
+-		20,						// UINT32	VirtualTimerGSIV
+-		GTDT_GTIMER_FLAGS,				// UINT32	VirtualTimerFlags
+-		17,						// UINT32	NonSecurePL2TimerGSIV
+-		GTDT_GTIMER_FLAGS,				// UINT32	NonSecurePL2TimerFlags
+-		0xFFFFFFFFFFFFFFFF,				// UINT64	CntReadBasePhysicalAddress
+-		0,						// UINT32	PlatformTimerCount
+-		0						// UINT32	PlatfromTimerOffset
++		QTIMER_PHYS_ADDR,				// UINT64 PhysicalAddress
++		0,						// UINT32  Reserved
++		FixedPcdGet32 (PcdArmArchTimerSecIntrNum),	// UINT32  SecurePL1TimerGSIV
++		GTDT_GTIMER_FLAGS,				// UINT32  SecurePL1TimerFlags
++		FixedPcdGet32 (PcdArmArchTimerIntrNum),	// UINT32  NonSecurePL1TimerGSIV
++		GTDT_GTIMER_FLAGS,				// UINT32  NonSecurePL1TimerFlags
++		FixedPcdGet32 (PcdArmArchTimerVirtIntrNum),	// UINT32  VirtualTimerGSIV
++		GTDT_GTIMER_FLAGS,				// UINT32  VirtualTimerFlags
++		FixedPcdGet32 (PcdArmArchTimerHypIntrNum),	// UINT32  NonSecurePL2TimerGSIV
++		GTDT_GTIMER_FLAGS,				// UINT32  NonSecurePL2TimerFlags
++		0xFFFFFFFFFFFFFFFF,				// UINT64  CntReadBasePhysicalAddress
++		0,						// UINT32  PlatformTimerCount
++		0						// UINT32  PlatfromTimerOffset
+ 	},
+ };
+ 
+diff --git a/MSM8909Pkg/AcpiTables/Madt.asl b/MSM8909Pkg/AcpiTables/Madt.asl
+deleted file mode 100644
+index fe8ea12..0000000
+--- a/MSM8909Pkg/AcpiTables/Madt.asl
++++ /dev/null
+@@ -1,208 +0,0 @@
+-[000h 0000   4]                    Signature : "APIC"    [Multiple APIC Description Table (MADT)]
+-[004h 0004   4]                 Table Length : 000002DC
+-[008h 0008   1]                     Revision : 03
+-[009h 0009   1]                     Checksum : 00
+-[00Ah 0010   6]                       Oem ID : "QCOM  "
+-[010h 0016   8]                 Oem Table ID : "QCOMEDK2"
+-[018h 0024   4]                 Oem Revision : 00008994
+-[01Ch 0028   4]              Asl Compiler ID : "QCOM"
+-[020h 0032   4]        Asl Compiler Revision : 00000001
+-
+-[024h 0036   4]           Local Apic Address : F9002000
+-[028h 0040   4]        Flags (decoded below) : 00000000
+-                         PC-AT Compatibility : 0
+-
+-[02Ch 0044   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[02Dh 0045   1]                       Length : 50
+-[02Eh 0046   2]                     Reserved : 0000
+-[030h 0048   4]         CPU Interface Number : 00000000
+-[034h 0052   4]                Processor UID : 00000000
+-[038h 0056   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[03Ch 0060   4]     Parking Protocol Version : 00000000
+-[040h 0064   4]        Performance Interrupt : 00000017
+-[044h 0068   8]               Parked Address : 0000000000301000
+-[04Ch 0076   8]                 Base Address : 00000000F9002000
+-[054h 0084   8]     Virtual GIC Base Address : 00000000F9004000
+-[05Ch 0092   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[064h 0100   4]        Virtual GIC Interrupt : 00000019
+-[068h 0104   8]   Redistributor Base Address : 0000000000000000
+-[070h 0112   8]                    ARM MPIDR : 0000000000000000
+-[078h 0120   1]             Efficiency Class : 00
+-[079h 0121   1]                     Reserved : 00
+-[07Ah 0122   2]       SPE Overflow Interrupt : 0000
+-
+-[07Ch 0124   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[07Dh 0125   1]                       Length : 50
+-[07Eh 0126   2]                     Reserved : 0000
+-[080h 0128   4]         CPU Interface Number : 00000001
+-[084h 0132   4]                Processor UID : 00000001
+-[088h 0136   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[08Ch 0140   4]     Parking Protocol Version : 00000000
+-[090h 0144   4]        Performance Interrupt : 00000017
+-[094h 0148   8]               Parked Address : 0000000000302000
+-[09Ch 0156   8]                 Base Address : 00000000F9002000
+-[0A4h 0164   8]     Virtual GIC Base Address : 00000000F9004000
+-[0ACh 0172   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[0B4h 0180   4]        Virtual GIC Interrupt : 00000019
+-[0B8h 0184   8]   Redistributor Base Address : 0000000000000000
+-[0C0h 0192   8]                    ARM MPIDR : 0000000000000001
+-[0C8h 0200   1]             Efficiency Class : 00
+-[0C9h 0201   1]                     Reserved : 00
+-[0CAh 0202   2]       SPE Overflow Interrupt : 0000
+-
+-[0CCh 0204   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[0CDh 0205   1]                       Length : 50
+-[0CEh 0206   2]                     Reserved : 0000
+-[0D0h 0208   4]         CPU Interface Number : 00000002
+-[0D4h 0212   4]                Processor UID : 00000002
+-[0D8h 0216   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[0DCh 0220   4]     Parking Protocol Version : 00000000
+-[0E0h 0224   4]        Performance Interrupt : 00000017
+-[0E4h 0228   8]               Parked Address : 0000000000303000
+-[0ECh 0236   8]                 Base Address : 00000000F9002000
+-[0F4h 0244   8]     Virtual GIC Base Address : 00000000F9004000
+-[0FCh 0252   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[104h 0260   4]        Virtual GIC Interrupt : 00000019
+-[108h 0264   8]   Redistributor Base Address : 0000000000000000
+-[110h 0272   8]                    ARM MPIDR : 0000000000000002
+-[118h 0280   1]             Efficiency Class : 00
+-[119h 0281   1]                     Reserved : 00
+-[11Ah 0282   2]       SPE Overflow Interrupt : 0000
+-
+-[11Ch 0284   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[11Dh 0285   1]                       Length : 50
+-[11Eh 0286   2]                     Reserved : 0000
+-[120h 0288   4]         CPU Interface Number : 00000003
+-[124h 0292   4]                Processor UID : 00000003
+-[128h 0296   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[12Ch 0300   4]     Parking Protocol Version : 00000000
+-[130h 0304   4]        Performance Interrupt : 00000017
+-[134h 0308   8]               Parked Address : 0000000000304000
+-[13Ch 0316   8]                 Base Address : 00000000F9002000
+-[144h 0324   8]     Virtual GIC Base Address : 00000000F9004000
+-[14Ch 0332   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[154h 0340   4]        Virtual GIC Interrupt : 00000019
+-[158h 0344   8]   Redistributor Base Address : 0000000000000000
+-[160h 0352   8]                    ARM MPIDR : 0000000000000003
+-[168h 0360   1]             Efficiency Class : 00
+-[169h 0361   1]                     Reserved : 00
+-[16Ah 0362   2]       SPE Overflow Interrupt : 0000
+-
+-[16Ch 0364   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[16Dh 0365   1]                       Length : 50
+-[16Eh 0366   2]                     Reserved : 0000
+-[170h 0368   4]         CPU Interface Number : 00000004
+-[174h 0372   4]                Processor UID : 00000004
+-[178h 0376   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[17Ch 0380   4]     Parking Protocol Version : 00000000
+-[180h 0384   4]        Performance Interrupt : 00000017
+-[184h 0388   8]               Parked Address : 0000000000305000
+-[18Ch 0396   8]                 Base Address : 00000000F9002000
+-[194h 0404   8]     Virtual GIC Base Address : 00000000F9004000
+-[19Ch 0412   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[1A4h 0420   4]        Virtual GIC Interrupt : 00000019
+-[1A8h 0424   8]   Redistributor Base Address : 0000000000000000
+-[1B0h 0432   8]                    ARM MPIDR : 0000000000000100
+-[1B8h 0440   1]             Efficiency Class : 01
+-[1B9h 0441   1]                     Reserved : 00
+-[1BAh 0442   2]       SPE Overflow Interrupt : 0000
+-
+-[1BCh 0444   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[1BDh 0445   1]                       Length : 50
+-[1BEh 0446   2]                     Reserved : 0000
+-[1C0h 0448   4]         CPU Interface Number : 00000005
+-[1C4h 0452   4]                Processor UID : 00000005
+-[1C8h 0456   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[1CCh 0460   4]     Parking Protocol Version : 00000000
+-[1D0h 0464   4]        Performance Interrupt : 00000017
+-[1D4h 0468   8]               Parked Address : 0000000000306000
+-[1DCh 0476   8]                 Base Address : 00000000F9002000
+-[1E4h 0484   8]     Virtual GIC Base Address : 00000000F9004000
+-[1ECh 0492   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[1F4h 0500   4]        Virtual GIC Interrupt : 00000019
+-[1F8h 0504   8]   Redistributor Base Address : 0000000000000000
+-[200h 0512   8]                    ARM MPIDR : 0000000000000101
+-[208h 0520   1]             Efficiency Class : 01
+-[209h 0521   1]                     Reserved : 00
+-[20Ah 0522   2]       SPE Overflow Interrupt : 0000
+-
+-[20Ch 0524   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[20Dh 0525   1]                       Length : 50
+-[20Eh 0526   2]                     Reserved : 0000
+-[210h 0528   4]         CPU Interface Number : 00000006
+-[214h 0532   4]                Processor UID : 00000006
+-[218h 0536   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[21Ch 0540   4]     Parking Protocol Version : 00000000
+-[220h 0544   4]        Performance Interrupt : 00000017
+-[224h 0548   8]               Parked Address : 0000000000307000
+-[22Ch 0556   8]                 Base Address : 00000000F9002000
+-[234h 0564   8]     Virtual GIC Base Address : 00000000F9004000
+-[23Ch 0572   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[244h 0580   4]        Virtual GIC Interrupt : 00000019
+-[248h 0584   8]   Redistributor Base Address : 0000000000000000
+-[250h 0592   8]                    ARM MPIDR : 0000000000000102
+-[258h 0600   1]             Efficiency Class : 01
+-[259h 0601   1]                     Reserved : 00
+-[25Ah 0602   2]       SPE Overflow Interrupt : 0000
+-
+-[25Ch 0604   1]                Subtable Type : 0B [Generic Interrupt Controller]
+-[25Dh 0605   1]                       Length : 50
+-[25Eh 0606   2]                     Reserved : 0000
+-[260h 0608   4]         CPU Interface Number : 00000007
+-[264h 0612   4]                Processor UID : 00000007
+-[268h 0616   4]        Flags (decoded below) : 00000001
+-                           Processor Enabled : 1
+-          Performance Interrupt Trigger Mode : 0
+-          Virtual GIC Interrupt Trigger Mode : 0
+-[26Ch 0620   4]     Parking Protocol Version : 00000000
+-[270h 0624   4]        Performance Interrupt : 00000017
+-[274h 0628   8]               Parked Address : 0000000000308000
+-[27Ch 0636   8]                 Base Address : 00000000F9002000
+-[284h 0644   8]     Virtual GIC Base Address : 00000000F9004000
+-[28Ch 0652   8]  Hypervisor GIC Base Address : 00000000F9001000
+-[294h 0660   4]        Virtual GIC Interrupt : 00000019
+-[298h 0664   8]   Redistributor Base Address : 0000000000000000
+-[2A0h 0672   8]                    ARM MPIDR : 0000000000000103
+-[2A8h 0680   1]             Efficiency Class : 01
+-[2A9h 0681   1]                     Reserved : 00
+-[2AAh 0682   2]       SPE Overflow Interrupt : 0000
+-
+-[2ACh 0684   1]                Subtable Type : 0C [Generic Interrupt Distributor]
+-[2ADh 0685   1]                       Length : 18
+-[2AEh 0686   2]                     Reserved : 0000
+-[2B0h 0688   4]        Local GIC Hardware ID : 00000000
+-[2B4h 0692   8]                 Base Address : 00000000F9000000
+-[2BCh 0700   4]               Interrupt Base : 00000000
+-[2C0h 0704   1]                      Version : 02
+-[2C1h 0705   3]                     Reserved : 000000
+-
+-[2C4h 0708   1]                Subtable Type : 0D [Generic MSI Frame]
+-[2C5h 0709   1]                       Length : 18
+-[2C6h 0710   2]                     Reserved : 0000
+-[2C8h 0712   4]                 MSI Frame ID : 00000001
+-[2CCh 0716   8]                 Base Address : 00000000F9007000
+-[2D4h 0724   4]        Flags (decoded below) : 00000000
+-                                  Select SPI : 0
+-[2D8h 0728   2]                    SPI Count : 0000
+-[2DAh 0730   2]                     SPI Base : 0000
+diff --git a/MSM8909Pkg/AcpiTables/Madt.aslc b/MSM8909Pkg/AcpiTables/Madt.aslc
+index 867d30b..b80cbae 100644
+--- a/MSM8909Pkg/AcpiTables/Madt.aslc
++++ b/MSM8909Pkg/AcpiTables/Madt.aslc
+@@ -73,21 +73,21 @@ EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE Madt = {
+ 		// protocol, it might want to wake up the cores in the order of this table.
+ 
+ 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(0, 0, 0, EFI_ACPI_6_0_GIC_ENABLED,
+-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
++		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
+ 		                                 0, 0x19, 0, 0),
+ 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_DISABLED,
+-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
++		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
+ 		                                 0, 0x19, 0, 0),
+ 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(2, 2, 2, EFI_ACPI_6_0_GIC_DISABLED,
+-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
++		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
+ 		                                 0, 0x19, 0, 0),
+ 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(3, 3, 3, EFI_ACPI_6_0_GIC_DISABLED,
+-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
++		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
+ 		                                 0, 0x19, 0, 0),
+ 	},
+ 	// GIC Distributor
+ 	EFI_ACPI_6_0_GIC_DISTRIBUTOR_INIT(0, FixedPcdGet32(PcdGicDistributorBase),
+-	                                  0, 2),
++	                                  0, 3),
+ 	// End of the table
+ };
+ 
+diff --git a/MSM8909Pkg/AcpiTables/Platform.h b/MSM8909Pkg/AcpiTables/Platform.h
+index f18d58d..f53716d 100644
+--- a/MSM8909Pkg/AcpiTables/Platform.h
++++ b/MSM8909Pkg/AcpiTables/Platform.h
+@@ -19,10 +19,10 @@
+ //
+ // ACPI table information used to initialize tables.
+ //
+-#define EFI_ACPI_ARM_OEM_ID 'N', 'V', 'I', 'D', 'I', 'A' // OEMID 6 bytes long
++#define EFI_ACPI_ARM_OEM_ID 'Q', 'C', 'O', 'M', ' ', ' ' // OEMID 6 bytes long
+ #define EFI_ACPI_ARM_OEM_TABLE_ID                                              \
+-  SIGNATURE_64('N', 'I', 'N', 'T', 'E', 'N', 'D',                              \
+-               'O') // OEM table id 8 bytes long
++  SIGNATURE_64('Q', 'C', 'O', 'M', 'E', 'D', 'K',                              \
++               '2') // OEM table id 8 bytes long
+ #define EFI_ACPI_ARM_OEM_REVISION 0x20210314
+ #define EFI_ACPI_ARM_CREATOR_ID SIGNATURE_32('I', 'M', 'B', 'U')
+ #define EFI_ACPI_ARM_CREATOR_REVISION 0x00000004
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/ComponentName.c b/MSM8909Pkg/Drivers/KeypadDxe/ComponentName.c
+index 18a938b..f17047e 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/ComponentName.c
++++ b/MSM8909Pkg/Drivers/KeypadDxe/ComponentName.c
+@@ -3,9 +3,9 @@
+ 
+ Copyright (c) 2006 - 2016, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+@@ -58,12 +58,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadComponentNameGetDriverName (
+-  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
+-  IN  CHAR8                        *Language,
+-  OUT CHAR16                       **DriverName
+-  );
+-
++KeypadComponentNameGetDriverName(
++    IN EFI_COMPONENT_NAME_PROTOCOL *This, IN CHAR8 *Language,
++    OUT CHAR16 **DriverName);
+ 
+ /**
+   Retrieves a Unicode string that is the user readable name of the controller
+@@ -135,43 +132,36 @@ KeypadComponentNameGetDriverName (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadComponentNameGetControllerName (
+-  IN  EFI_COMPONENT_NAME_PROTOCOL                     *This,
+-  IN  EFI_HANDLE                                      ControllerHandle,
+-  IN  EFI_HANDLE                                      ChildHandle        OPTIONAL,
+-  IN  CHAR8                                           *Language,
+-  OUT CHAR16                                          **ControllerName
+-  );
+-
++KeypadComponentNameGetControllerName(
++    IN EFI_COMPONENT_NAME_PROTOCOL *This, IN EFI_HANDLE ControllerHandle,
++    IN EFI_HANDLE ChildHandle OPTIONAL, IN CHAR8 *Language,
++    OUT CHAR16 **ControllerName);
+ 
+ //
+ // EFI Component Name Protocol
+ //
+-GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME_PROTOCOL  gKeypadComponentName = {
+-  KeypadComponentNameGetDriverName,
+-  KeypadComponentNameGetControllerName,
+-  "eng"
++GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME_PROTOCOL
++                              gKeypadComponentName = {
++        KeypadComponentNameGetDriverName,
++        KeypadComponentNameGetControllerName,
++        "eng",
+ };
+ 
+ //
+ // EFI Component Name 2 Protocol
+ //
+-GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME2_PROTOCOL gKeypadComponentName2 = {
+-  (EFI_COMPONENT_NAME2_GET_DRIVER_NAME) KeypadComponentNameGetDriverName,
+-  (EFI_COMPONENT_NAME2_GET_CONTROLLER_NAME) KeypadComponentNameGetControllerName,
+-  "en"
++GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME2_PROTOCOL
++                              gKeypadComponentName2 = {
++        (EFI_COMPONENT_NAME2_GET_DRIVER_NAME)KeypadComponentNameGetDriverName,
++        (EFI_COMPONENT_NAME2_GET_CONTROLLER_NAME)
++            KeypadComponentNameGetControllerName,
++        "en",
+ };
+ 
+-
+-GLOBAL_REMOVE_IF_UNREFERENCED EFI_UNICODE_STRING_TABLE mKeypadDriverNameTable[] = {
+-  {
+-    "eng;en",
+-    L"Keypad Driver"
+-  },
+-  {
+-    NULL,
+-    NULL
+-  }
++GLOBAL_REMOVE_IF_UNREFERENCED EFI_UNICODE_STRING_TABLE
++                              mKeypadDriverNameTable[] = {
++        {"eng;en", L"Keypad Driver"},
++        {NULL, NULL},
+ };
+ 
+ /**
+@@ -215,19 +205,13 @@ GLOBAL_REMOVE_IF_UNREFERENCED EFI_UNICODE_STRING_TABLE mKeypadDriverNameTable[]
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadComponentNameGetDriverName (
+-  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
+-  IN  CHAR8                        *Language,
+-  OUT CHAR16                       **DriverName
+-  )
++KeypadComponentNameGetDriverName(
++    IN EFI_COMPONENT_NAME_PROTOCOL *This, IN CHAR8 *Language,
++    OUT CHAR16 **DriverName)
+ {
+-  return LookupUnicodeString2 (
+-           Language,
+-           This->SupportedLanguages,
+-           mKeypadDriverNameTable,
+-           DriverName,
+-           (BOOLEAN)(This == &gKeypadComponentName)
+-           );
++  return LookupUnicodeString2(
++      Language, This->SupportedLanguages, mKeypadDriverNameTable, DriverName,
++      (BOOLEAN)(This == &gKeypadComponentName));
+ }
+ 
+ /**
+@@ -300,17 +284,14 @@ KeypadComponentNameGetDriverName (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadComponentNameGetControllerName (
+-  IN  EFI_COMPONENT_NAME_PROTOCOL                     *This,
+-  IN  EFI_HANDLE                                      ControllerHandle,
+-  IN  EFI_HANDLE                                      ChildHandle        OPTIONAL,
+-  IN  CHAR8                                           *Language,
+-  OUT CHAR16                                          **ControllerName
+-  )
++KeypadComponentNameGetControllerName(
++    IN EFI_COMPONENT_NAME_PROTOCOL *This, IN EFI_HANDLE ControllerHandle,
++    IN EFI_HANDLE ChildHandle OPTIONAL, IN CHAR8 *Language,
++    OUT CHAR16 **ControllerName)
+ {
+-  EFI_STATUS                                  Status;
+-  EFI_SIMPLE_TEXT_INPUT_PROTOCOL              *ConIn;
+-  KEYPAD_CONSOLE_IN_DEV                       *ConsoleIn;
++  EFI_STATUS                      Status;
++  EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn;
++  KEYPAD_CONSOLE_IN_DEV *         ConsoleIn;
+   //
+   // This is a device driver, so ChildHandle must be NULL.
+   //
+@@ -321,32 +302,26 @@ KeypadComponentNameGetControllerName (
+   //
+   // Check Controller's handle
+   //
+-  Status = EfiTestManagedDevice (ControllerHandle, gKeypadControllerDriver.DriverBindingHandle, &gEFIDroidKeypadDeviceProtocolGuid);
+-  if (EFI_ERROR (Status)) {
++  Status = EfiTestManagedDevice(
++      ControllerHandle, gKeypadControllerDriver.DriverBindingHandle,
++      &gEFIDroidKeypadDeviceProtocolGuid);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+   //
+   // Get the device context
+   //
+-  Status = gBS->OpenProtocol (
+-                  ControllerHandle,
+-                  &gEfiSimpleTextInProtocolGuid,
+-                  (VOID **) &ConIn,
+-                  gKeypadControllerDriver.DriverBindingHandle,
+-                  ControllerHandle,
+-                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->OpenProtocol(
++      ControllerHandle, &gEfiSimpleTextInProtocolGuid, (VOID **)&ConIn,
++      gKeypadControllerDriver.DriverBindingHandle, ControllerHandle,
++      EFI_OPEN_PROTOCOL_GET_PROTOCOL);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+ 
+-  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS (ConIn);
++  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS(ConIn);
+ 
+-  return LookupUnicodeString2 (
+-           Language,
+-           This->SupportedLanguages,
+-           ConsoleIn->ControllerNameTable,
+-           ControllerName,
+-           (BOOLEAN)(This == &gKeypadComponentName)
+-           );
++  return LookupUnicodeString2(
++      Language, This->SupportedLanguages, ConsoleIn->ControllerNameTable,
++      ControllerName, (BOOLEAN)(This == &gKeypadComponentName));
+ }
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/Keypad.c b/MSM8909Pkg/Drivers/KeypadDxe/Keypad.c
+index 8b6f473..8a59232 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/Keypad.c
++++ b/MSM8909Pkg/Drivers/KeypadDxe/Keypad.c
+@@ -5,9 +5,9 @@
+ 
+ Copyright (c) 2006 - 2016, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+@@ -32,11 +32,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverSupported (
+-  IN EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN EFI_HANDLE                     Controller,
+-  IN EFI_DEVICE_PATH_PROTOCOL       *RemainingDevicePath
+-  );
++KeypadControllerDriverSupported(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath);
+ 
+ /**
+   Create KEYPAD_CONSOLE_IN_DEV instance on controller.
+@@ -49,11 +47,9 @@ KeypadControllerDriverSupported (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverStart (
+-  IN EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN EFI_HANDLE                     Controller,
+-  IN EFI_DEVICE_PATH_PROTOCOL       *RemainingDevicePath
+-  );
++KeypadControllerDriverStart(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath);
+ 
+ /**
+   Stop this driver on ControllerHandle. Support stopping any child handles
+@@ -71,12 +67,9 @@ KeypadControllerDriverStart (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverStop (
+-  IN  EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN  EFI_HANDLE                     Controller,
+-  IN  UINTN                          NumberOfChildren,
+-  IN  EFI_HANDLE                     *ChildHandleBuffer
+-  );
++KeypadControllerDriverStop(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN UINTN NumberOfChildren, IN EFI_HANDLE *ChildHandleBuffer);
+ 
+ /**
+   Free the waiting key notify list.
+@@ -87,21 +80,18 @@ KeypadControllerDriverStop (
+   @retval EFI_SUCCESS            Sucess to free NotifyList
+ **/
+ EFI_STATUS
+-KbdFreeNotifyList (
+-  IN OUT LIST_ENTRY           *ListHead
+-  );
++KbdFreeNotifyList(IN OUT LIST_ENTRY *ListHead);
+ 
+ //
+ // DriverBinding Protocol Instance
+ //
+ EFI_DRIVER_BINDING_PROTOCOL gKeypadControllerDriver = {
+-  KeypadControllerDriverSupported,
+-  KeypadControllerDriverStart,
+-  KeypadControllerDriverStop,
+-  0xa,
+-  NULL,
+-  NULL
+-};
++    KeypadControllerDriverSupported,
++    KeypadControllerDriverStart,
++    KeypadControllerDriverStop,
++    0xa,
++    NULL,
++    NULL};
+ 
+ /**
+   Test controller is a keypad Controller.
+@@ -115,89 +105,75 @@ EFI_DRIVER_BINDING_PROTOCOL gKeypadControllerDriver = {
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverSupported (
+-  IN EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN EFI_HANDLE                     Controller,
+-  IN EFI_DEVICE_PATH_PROTOCOL       *RemainingDevicePath
+-  )
++KeypadControllerDriverSupported(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath)
+ {
+-  EFI_STATUS                                 Status;
+-  KEYPAD_DEVICE_PROTOCOL                     *KeypadDevice;
++  EFI_STATUS              Status;
++  KEYPAD_DEVICE_PROTOCOL *KeypadDevice;
+ 
+   //
+   // Open the IO Abstraction(s) needed to perform the supported test
+   //
+-  Status = gBS->OpenProtocol (
+-                  Controller,
+-                  &gEFIDroidKeypadDeviceProtocolGuid,
+-                  (VOID **) &KeypadDevice,
+-                  This->DriverBindingHandle,
+-                  Controller,
+-                  EFI_OPEN_PROTOCOL_BY_DRIVER
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->OpenProtocol(
++      Controller, &gEFIDroidKeypadDeviceProtocolGuid, (VOID **)&KeypadDevice,
++      This->DriverBindingHandle, Controller, EFI_OPEN_PROTOCOL_BY_DRIVER);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+ 
+   //
+   // Close the I/O Abstraction(s) used to perform the supported test
+   //
+-  gBS->CloseProtocol (
+-         Controller,
+-         &gEFIDroidKeypadDeviceProtocolGuid,
+-         This->DriverBindingHandle,
+-         Controller
+-         );
++  gBS->CloseProtocol(
++      Controller, &gEFIDroidKeypadDeviceProtocolGuid, This->DriverBindingHandle,
++      Controller);
+ 
+   return Status;
+ }
+ 
+-
+ STATIC
+-VOID
+-EFIAPI
+-KeypadReturnApiPushEfikeyBufTail (
+-  KEYPAD_RETURN_API  *This,
+-  EFI_KEY_DATA       *KeyData
+-  )
++VOID EFIAPI
++KeypadReturnApiPushEfikeyBufTail(KEYPAD_RETURN_API *This, EFI_KEY_DATA *KeyData)
+ {
+-  KEYPAD_CONSOLE_IN_DEV          *ConsoleIn;
+-  LIST_ENTRY                     *Link;
+-  KEYPAD_CONSOLE_IN_EX_NOTIFY    *CurrentNotify;
++  KEYPAD_CONSOLE_IN_DEV *      ConsoleIn;
++  LIST_ENTRY *                 Link;
++  KEYPAD_CONSOLE_IN_EX_NOTIFY *CurrentNotify;
+ 
+-  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_KEYPAD_RETURN_API (This);
++  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_KEYPAD_RETURN_API(This);
+ 
+   //
+   // If the key can not be converted then just return.
+   //
+-  if (KeyData->Key.ScanCode == SCAN_NULL && KeyData->Key.UnicodeChar == CHAR_NULL) {
++  if (KeyData->Key.ScanCode == SCAN_NULL &&
++      KeyData->Key.UnicodeChar == CHAR_NULL) {
+     if (!ConsoleIn->IsSupportPartialKey) {
+       return;
+     }
+   }
+ 
+   //
+-  // Signal KeyNotify process event if this key pressed matches any key registered.
++  // Signal KeyNotify process event if this key pressed matches any key
++  // registered.
+   //
+-  for (Link = GetFirstNode (&ConsoleIn->NotifyList); !IsNull (&ConsoleIn->NotifyList, Link); Link = GetNextNode (&ConsoleIn->NotifyList, Link)) {
+-    CurrentNotify = CR (
+-                      Link,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY,
+-                      NotifyEntry,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE
+-                      );
+-    if (IsKeyRegistered (&CurrentNotify->KeyData, KeyData)) {
++  for (Link = GetFirstNode(&ConsoleIn->NotifyList);
++       !IsNull(&ConsoleIn->NotifyList, Link);
++       Link = GetNextNode(&ConsoleIn->NotifyList, Link)) {
++    CurrentNotify =
++        CR(Link, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry,
++           KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
++    if (IsKeyRegistered(&CurrentNotify->KeyData, KeyData)) {
+       //
+       // The key notification function needs to run at TPL_CALLBACK
+       // while current TPL is TPL_NOTIFY. It will be invoked in
+       // KeyNotifyProcessHandler() which runs at TPL_CALLBACK.
+       //
+-      PushEfikeyBufTail (&ConsoleIn->EfiKeyQueueForNotify, KeyData);
+-      gBS->SignalEvent (ConsoleIn->KeyNotifyProcessEvent);
++      PushEfikeyBufTail(&ConsoleIn->EfiKeyQueueForNotify, KeyData);
++      gBS->SignalEvent(ConsoleIn->KeyNotifyProcessEvent);
+     }
+   }
+ 
+-  PushEfikeyBufTail (&ConsoleIn->EfiKeyQueue, KeyData);
++  PushEfikeyBufTail(&ConsoleIn->EfiKeyQueue, KeyData);
+ }
+ 
+ /**
+@@ -211,48 +187,42 @@ KeypadReturnApiPushEfikeyBufTail (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverStart (
+-  IN EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN EFI_HANDLE                     Controller,
+-  IN EFI_DEVICE_PATH_PROTOCOL       *RemainingDevicePath
+-  )
++KeypadControllerDriverStart(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath)
+ {
+-  EFI_STATUS                                Status;
+-  KEYPAD_DEVICE_PROTOCOL                    *KeypadDevice;
+-  KEYPAD_CONSOLE_IN_DEV                     *ConsoleIn;
+-
+-  //
+-  // Get the ISA I/O Protocol on Controller's handle
+-  //
+-  Status = gBS->OpenProtocol (
+-                  Controller,
+-                  &gEFIDroidKeypadDeviceProtocolGuid,
+-                  (VOID **) &KeypadDevice,
+-                  This->DriverBindingHandle,
+-                  Controller,
+-                  EFI_OPEN_PROTOCOL_BY_DRIVER
+-                  );
+-  if (EFI_ERROR (Status)) {
++  EFI_STATUS              Status;
++  KEYPAD_DEVICE_PROTOCOL *KeypadDevice;
++  KEYPAD_CONSOLE_IN_DEV * ConsoleIn;
++
++  //
++  // Get the KeyPad Protocol on Controller's handle
++  //
++  Status = gBS->OpenProtocol(
++      Controller, &gEFIDroidKeypadDeviceProtocolGuid, (VOID **)&KeypadDevice,
++      This->DriverBindingHandle, Controller, EFI_OPEN_PROTOCOL_BY_DRIVER);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+   //
+   // Allocate private data
+   //
+-  ConsoleIn = AllocateZeroPool (sizeof (KEYPAD_CONSOLE_IN_DEV));
++  ConsoleIn = AllocateZeroPool(sizeof(KEYPAD_CONSOLE_IN_DEV));
+   if (ConsoleIn == NULL) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+   //
+   // Setup the device instance
+   //
+-  ConsoleIn->Signature              = KEYPAD_CONSOLE_IN_DEV_SIGNATURE;
+-  ConsoleIn->Handle                 = Controller;
+-  (ConsoleIn->ConIn).Reset          = KeypadEfiReset;
+-  (ConsoleIn->ConIn).ReadKeyStroke  = KeypadReadKeyStroke;
+-  ConsoleIn->KeypadDevice           = KeypadDevice;
+-  ConsoleIn->KeypadReturnApi.PushEfikeyBufTail = KeypadReturnApiPushEfikeyBufTail;
+-  ConsoleIn->Last                   = (UINT64)-1;
++  ConsoleIn->Signature             = KEYPAD_CONSOLE_IN_DEV_SIGNATURE;
++  ConsoleIn->Handle                = Controller;
++  (ConsoleIn->ConIn).Reset         = KeypadEfiReset;
++  (ConsoleIn->ConIn).ReadKeyStroke = KeypadReadKeyStroke;
++  ConsoleIn->KeypadDevice          = KeypadDevice;
++  ConsoleIn->KeypadReturnApi.PushEfikeyBufTail =
++      KeypadReturnApiPushEfikeyBufTail;
++  ConsoleIn->Last = (UINT64)-1;
+ 
+   ConsoleIn->ConInEx.Reset               = KeypadEfiResetEx;
+   ConsoleIn->ConInEx.ReadKeyStrokeEx     = KeypadReadKeyStrokeEx;
+@@ -260,117 +230,84 @@ KeypadControllerDriverStart (
+   ConsoleIn->ConInEx.RegisterKeyNotify   = KeypadRegisterKeyNotify;
+   ConsoleIn->ConInEx.UnregisterKeyNotify = KeypadUnregisterKeyNotify;
+ 
+-  InitializeListHead (&ConsoleIn->NotifyList);
++  InitializeListHead(&ConsoleIn->NotifyList);
+ 
+   //
+-  // Fix for random hangs in System waiting for the Key if no KBC is present in BIOS.
+-  // When KBC decode (IO port 0x60/0x64 decode) is not enabled,
+-  // KeypadRead will read back as 0xFF and return status is EFI_SUCCESS.
+-  // So instead we read status register to detect after read if KBC decode is enabled.
++  // Fix for random hangs in System waiting for the Key if no KBC is present in
++  // BIOS. When KBC decode (IO port 0x60/0x64 decode) is not enabled, KeypadRead
++  // will read back as 0xFF and return status is EFI_SUCCESS. So instead we read
++  // status register to detect after read if KBC decode is enabled.
+   //
+ 
+   //
+   // Setup the WaitForKey event
+   //
+-  Status = gBS->CreateEvent (
+-                  EVT_NOTIFY_WAIT,
+-                  TPL_NOTIFY,
+-                  KeypadWaitForKey,
+-                  ConsoleIn,
+-                  &((ConsoleIn->ConIn).WaitForKey)
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++  Status = gBS->CreateEvent(
++      EVT_NOTIFY_WAIT, TPL_NOTIFY, KeypadWaitForKey, ConsoleIn,
++      &((ConsoleIn->ConIn).WaitForKey));
++  if (EFI_ERROR(Status)) {
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+   //
+   // Setup the WaitForKeyEx event
+   //
+-  Status = gBS->CreateEvent (
+-                  EVT_NOTIFY_WAIT,
+-                  TPL_NOTIFY,
+-                  KeypadWaitForKeyEx,
+-                  ConsoleIn,
+-                  &(ConsoleIn->ConInEx.WaitForKeyEx)
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++  Status = gBS->CreateEvent(
++      EVT_NOTIFY_WAIT, TPL_NOTIFY, KeypadWaitForKeyEx, ConsoleIn,
++      &(ConsoleIn->ConInEx.WaitForKeyEx));
++  if (EFI_ERROR(Status)) {
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+   // Setup a periodic timer, used for reading keystrokes at a fixed interval
+   //
+-  Status = gBS->CreateEvent (
+-                  EVT_TIMER | EVT_NOTIFY_SIGNAL,
+-                  TPL_NOTIFY,
+-                  KeypadTimerHandler,
+-                  ConsoleIn,
+-                  &ConsoleIn->TimerEvent
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++  Status = gBS->CreateEvent(
++      EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, KeypadTimerHandler,
++      ConsoleIn, &ConsoleIn->TimerEvent);
++  if (EFI_ERROR(Status)) {
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+ 
+-  Status = gBS->SetTimer (
+-                  ConsoleIn->TimerEvent,
+-                  TimerPeriodic,
+-                  KEYPAD_TIMER_INTERVAL
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++  Status = gBS->SetTimer(
++      ConsoleIn->TimerEvent, TimerPeriodic, KEYPAD_TIMER_INTERVAL);
++  if (EFI_ERROR(Status)) {
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+ 
+-  Status = gBS->CreateEvent (
+-                  EVT_NOTIFY_SIGNAL,
+-                  TPL_CALLBACK,
+-                  KeyNotifyProcessHandler,
+-                  ConsoleIn,
+-                  &ConsoleIn->KeyNotifyProcessEvent
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_OUT_OF_RESOURCES;
++  Status = gBS->CreateEvent(
++      EVT_NOTIFY_SIGNAL, TPL_CALLBACK, KeyNotifyProcessHandler, ConsoleIn,
++      &ConsoleIn->KeyNotifyProcessEvent);
++  if (EFI_ERROR(Status)) {
++    Status = EFI_OUT_OF_RESOURCES;
+     goto ErrorExit;
+   }
+ 
+   //
+   // Reset the keypad device
+   //
+-  Status = ConsoleIn->ConInEx.Reset (&ConsoleIn->ConInEx, FALSE);
+-  if (EFI_ERROR (Status)) {
+-    Status      = EFI_DEVICE_ERROR;
++  Status = ConsoleIn->ConInEx.Reset(&ConsoleIn->ConInEx, FALSE);
++  if (EFI_ERROR(Status)) {
++    Status = EFI_DEVICE_ERROR;
+     goto ErrorExit;
+   }
+ 
+   ConsoleIn->ControllerNameTable = NULL;
+-  AddUnicodeString2 (
+-    "eng",
+-    gKeypadComponentName.SupportedLanguages,
+-    &ConsoleIn->ControllerNameTable,
+-    L"Keypad Device",
+-    TRUE
+-    );
+-  AddUnicodeString2 (
+-    "en",
+-    gKeypadComponentName2.SupportedLanguages,
+-    &ConsoleIn->ControllerNameTable,
+-    L"Keypad Device",
+-    FALSE
+-    );
+-
++  AddUnicodeString2(
++      "eng", gKeypadComponentName.SupportedLanguages,
++      &ConsoleIn->ControllerNameTable, L"Keypad Device", TRUE);
++  AddUnicodeString2(
++      "en", gKeypadComponentName2.SupportedLanguages,
++      &ConsoleIn->ControllerNameTable, L"Keypad Device", FALSE);
+ 
+   //
+   // Install protocol interfaces for the keypad device.
+   //
+-  Status = gBS->InstallMultipleProtocolInterfaces (
+-                  &Controller,
+-                  &gEfiSimpleTextInProtocolGuid,
+-                  &ConsoleIn->ConIn,
+-                  &gEfiSimpleTextInputExProtocolGuid,
+-                  &ConsoleIn->ConInEx,
+-                  NULL
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->InstallMultipleProtocolInterfaces(
++      &Controller, &gEfiSimpleTextInProtocolGuid, &ConsoleIn->ConIn,
++      &gEfiSimpleTextInputExProtocolGuid, &ConsoleIn->ConInEx, NULL);
++  if (EFI_ERROR(Status)) {
+     goto ErrorExit;
+   }
+ 
+@@ -378,33 +315,30 @@ KeypadControllerDriverStart (
+ 
+ ErrorExit:
+   if ((ConsoleIn != NULL) && (ConsoleIn->ConIn.WaitForKey != NULL)) {
+-    gBS->CloseEvent (ConsoleIn->ConIn.WaitForKey);
++    gBS->CloseEvent(ConsoleIn->ConIn.WaitForKey);
+   }
+ 
+   if ((ConsoleIn != NULL) && (ConsoleIn->TimerEvent != NULL)) {
+-    gBS->CloseEvent (ConsoleIn->TimerEvent);
++    gBS->CloseEvent(ConsoleIn->TimerEvent);
+   }
+   if ((ConsoleIn != NULL) && (ConsoleIn->ConInEx.WaitForKeyEx != NULL)) {
+-    gBS->CloseEvent (ConsoleIn->ConInEx.WaitForKeyEx);
++    gBS->CloseEvent(ConsoleIn->ConInEx.WaitForKeyEx);
+   }
+   if ((ConsoleIn != NULL) && (ConsoleIn->KeyNotifyProcessEvent != NULL)) {
+-    gBS->CloseEvent (ConsoleIn->KeyNotifyProcessEvent);
++    gBS->CloseEvent(ConsoleIn->KeyNotifyProcessEvent);
+   }
+-  KbdFreeNotifyList (&ConsoleIn->NotifyList);
++  KbdFreeNotifyList(&ConsoleIn->NotifyList);
+   if ((ConsoleIn != NULL) && (ConsoleIn->ControllerNameTable != NULL)) {
+-    FreeUnicodeStringTable (ConsoleIn->ControllerNameTable);
++    FreeUnicodeStringTable(ConsoleIn->ControllerNameTable);
+   }
+ 
+   if (ConsoleIn != NULL) {
+-    gBS->FreePool (ConsoleIn);
++    gBS->FreePool(ConsoleIn);
+   }
+ 
+-  gBS->CloseProtocol (
+-         Controller,
+-         &gEFIDroidKeypadDeviceProtocolGuid,
+-         This->DriverBindingHandle,
+-         Controller
+-         );
++  gBS->CloseProtocol(
++      Controller, &gEFIDroidKeypadDeviceProtocolGuid, This->DriverBindingHandle,
++      Controller);
+ 
+   return Status;
+ }
+@@ -425,90 +359,69 @@ ErrorExit:
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadControllerDriverStop (
+-  IN  EFI_DRIVER_BINDING_PROTOCOL    *This,
+-  IN  EFI_HANDLE                     Controller,
+-  IN  UINTN                          NumberOfChildren,
+-  IN  EFI_HANDLE                     *ChildHandleBuffer
+-  )
++KeypadControllerDriverStop(
++    IN EFI_DRIVER_BINDING_PROTOCOL *This, IN EFI_HANDLE Controller,
++    IN UINTN NumberOfChildren, IN EFI_HANDLE *ChildHandleBuffer)
+ {
+-  EFI_STATUS                     Status;
++  EFI_STATUS                      Status;
+   EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn;
+-  KEYPAD_CONSOLE_IN_DEV          *ConsoleIn;
++  KEYPAD_CONSOLE_IN_DEV *         ConsoleIn;
+ 
+   //
+   // Disable Keypad
+   //
+-  Status = gBS->OpenProtocol (
+-                  Controller,
+-                  &gEfiSimpleTextInProtocolGuid,
+-                  (VOID **) &ConIn,
+-                  This->DriverBindingHandle,
+-                  Controller,
+-                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->OpenProtocol(
++      Controller, &gEfiSimpleTextInProtocolGuid, (VOID **)&ConIn,
++      This->DriverBindingHandle, Controller, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+-  Status = gBS->OpenProtocol (
+-                  Controller,
+-                  &gEfiSimpleTextInputExProtocolGuid,
+-                  NULL,
+-                  This->DriverBindingHandle,
+-                  Controller,
+-                  EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->OpenProtocol(
++      Controller, &gEfiSimpleTextInputExProtocolGuid, NULL,
++      This->DriverBindingHandle, Controller, EFI_OPEN_PROTOCOL_TEST_PROTOCOL);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+ 
+-  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS (ConIn);
++  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS(ConIn);
+ 
+   if (ConsoleIn->TimerEvent != NULL) {
+-    gBS->CloseEvent (ConsoleIn->TimerEvent);
++    gBS->CloseEvent(ConsoleIn->TimerEvent);
+     ConsoleIn->TimerEvent = NULL;
+   }
+ 
+   //
+   // Uninstall the SimpleTextIn and SimpleTextInEx protocols
+   //
+-  Status = gBS->UninstallMultipleProtocolInterfaces (
+-                  Controller,
+-                  &gEfiSimpleTextInProtocolGuid,
+-                  &ConsoleIn->ConIn,
+-                  &gEfiSimpleTextInputExProtocolGuid,
+-                  &ConsoleIn->ConInEx,
+-                  NULL
+-                  );
+-  if (EFI_ERROR (Status)) {
++  Status = gBS->UninstallMultipleProtocolInterfaces(
++      Controller, &gEfiSimpleTextInProtocolGuid, &ConsoleIn->ConIn,
++      &gEfiSimpleTextInputExProtocolGuid, &ConsoleIn->ConInEx, NULL);
++  if (EFI_ERROR(Status)) {
+     return Status;
+   }
+ 
+-  gBS->CloseProtocol (
+-         Controller,
+-         &gEFIDroidKeypadDeviceProtocolGuid,
+-         This->DriverBindingHandle,
+-         Controller
+-         );
++  gBS->CloseProtocol(
++      Controller, &gEFIDroidKeypadDeviceProtocolGuid, This->DriverBindingHandle,
++      Controller);
+ 
+   //
+   // Free other resources
+   //
+   if ((ConsoleIn->ConIn).WaitForKey != NULL) {
+-    gBS->CloseEvent ((ConsoleIn->ConIn).WaitForKey);
++    gBS->CloseEvent((ConsoleIn->ConIn).WaitForKey);
+     (ConsoleIn->ConIn).WaitForKey = NULL;
+   }
+   if (ConsoleIn->ConInEx.WaitForKeyEx != NULL) {
+-    gBS->CloseEvent (ConsoleIn->ConInEx.WaitForKeyEx);
++    gBS->CloseEvent(ConsoleIn->ConInEx.WaitForKeyEx);
+     ConsoleIn->ConInEx.WaitForKeyEx = NULL;
+   }
+   if (ConsoleIn->KeyNotifyProcessEvent != NULL) {
+-    gBS->CloseEvent (ConsoleIn->KeyNotifyProcessEvent);
++    gBS->CloseEvent(ConsoleIn->KeyNotifyProcessEvent);
+     ConsoleIn->KeyNotifyProcessEvent = NULL;
+   }
+-  KbdFreeNotifyList (&ConsoleIn->NotifyList);
+-  FreeUnicodeStringTable (ConsoleIn->ControllerNameTable);
+-  gBS->FreePool (ConsoleIn);
++  KbdFreeNotifyList(&ConsoleIn->NotifyList);
++  FreeUnicodeStringTable(ConsoleIn->ControllerNameTable);
++  gBS->FreePool(ConsoleIn);
+ 
+   return EFI_SUCCESS;
+ }
+@@ -522,24 +435,19 @@ KeypadControllerDriverStop (
+   @retval EFI_SUCCESS            Sucess to free NotifyList
+ **/
+ EFI_STATUS
+-KbdFreeNotifyList (
+-  IN OUT LIST_ENTRY           *ListHead
+-  )
++KbdFreeNotifyList(IN OUT LIST_ENTRY *ListHead)
+ {
+   KEYPAD_CONSOLE_IN_EX_NOTIFY *NotifyNode;
+ 
+   if (ListHead == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+-  while (!IsListEmpty (ListHead)) {
+-    NotifyNode = CR (
+-                   ListHead->ForwardLink,
+-                   KEYPAD_CONSOLE_IN_EX_NOTIFY,
+-                   NotifyEntry,
+-                   KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE
+-                   );
+-    RemoveEntryList (ListHead->ForwardLink);
+-    gBS->FreePool (NotifyNode);
++  while (!IsListEmpty(ListHead)) {
++    NotifyNode =
++        CR(ListHead->ForwardLink, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry,
++           KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
++    RemoveEntryList(ListHead->ForwardLink);
++    gBS->FreePool(NotifyNode);
+   }
+ 
+   return EFI_SUCCESS;
+@@ -557,27 +465,17 @@ KbdFreeNotifyList (
+ **/
+ EFI_STATUS
+ EFIAPI
+-InitializeKeypad(
+-  IN EFI_HANDLE           ImageHandle,
+-  IN EFI_SYSTEM_TABLE     *SystemTable
+-  )
++InitializeKeypad(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
+ {
+-  EFI_STATUS              Status;
++  EFI_STATUS Status;
+ 
+   //
+   // Install driver model protocol(s).
+   //
+-  Status = EfiLibInstallDriverBindingComponentName2 (
+-             ImageHandle,
+-             SystemTable,
+-             &gKeypadControllerDriver,
+-             ImageHandle,
+-             &gKeypadComponentName,
+-             &gKeypadComponentName2
+-             );
+-  ASSERT_EFI_ERROR (Status);
+-
++  Status = EfiLibInstallDriverBindingComponentName2(
++      ImageHandle, SystemTable, &gKeypadControllerDriver, ImageHandle,
++      &gKeypadComponentName, &gKeypadComponentName2);
++  ASSERT_EFI_ERROR(Status);
+ 
+   return Status;
+ }
+-
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/Keypad.h b/MSM8909Pkg/Drivers/KeypadDxe/Keypad.h
+index b8b61a8..558f00a 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/Keypad.h
++++ b/MSM8909Pkg/Drivers/KeypadDxe/Keypad.h
+@@ -3,9 +3,9 @@
+ 
+ Copyright (c) 2006 - 2016, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+@@ -17,118 +17,117 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+ 
+ #include <Uefi.h>
+ 
++#include <Protocol/KeypadDevice.h>
+ #include <Protocol/SimpleTextIn.h>
+ #include <Protocol/SimpleTextInEx.h>
+-#include <Protocol/KeypadDevice.h>
+ 
++#include <Library/BaseLib.h>
++#include <Library/BaseMemoryLib.h>
++#include <Library/DebugLib.h>
+ #include <Library/IoLib.h>
++#include <Library/MemoryAllocationLib.h>
++#include <Library/PcdLib.h>
++#include <Library/TimerLib.h>
++#include <Library/UefiBootServicesTableLib.h>
+ #include <Library/UefiDriverEntryPoint.h>
+ #include <Library/UefiLib.h>
+-#include <Library/UefiBootServicesTableLib.h>
+-#include <Library/DebugLib.h>
+ #include <Library/UefiRuntimeServicesTableLib.h>
+-#include <Library/MemoryAllocationLib.h>
+-#include <Library/BaseLib.h>
+-#include <Library/BaseMemoryLib.h>
+-#include <Library/TimerLib.h>
+-#include <Library/PcdLib.h>
+ 
+ //
+ // Global Variables
+ //
+-extern EFI_DRIVER_BINDING_PROTOCOL   gKeypadControllerDriver;
+-extern EFI_COMPONENT_NAME_PROTOCOL   gKeypadComponentName;
+-extern EFI_COMPONENT_NAME2_PROTOCOL  gKeypadComponentName2;
++extern EFI_DRIVER_BINDING_PROTOCOL  gKeypadControllerDriver;
++extern EFI_COMPONENT_NAME_PROTOCOL  gKeypadComponentName;
++extern EFI_COMPONENT_NAME2_PROTOCOL gKeypadComponentName2;
+ 
+ //
+ // Driver Private Data
+ //
+-#define KEYPAD_CONSOLE_IN_DEV_SIGNATURE       SIGNATURE_32 ('k', 'k', 'e', 'y')
+-#define KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE SIGNATURE_32 ('k', 'c', 'e', 'n')
++#define KEYPAD_CONSOLE_IN_DEV_SIGNATURE SIGNATURE_32('k', 'k', 'e', 'y')
++#define KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE SIGNATURE_32('k', 'c', 'e', 'n')
+ 
+ typedef struct _KEYPAD_CONSOLE_IN_EX_NOTIFY {
+-  UINTN                               Signature;
+-  EFI_KEY_DATA                        KeyData;
+-  EFI_KEY_NOTIFY_FUNCTION             KeyNotificationFn;
+-  LIST_ENTRY                          NotifyEntry;
++  UINTN                   Signature;
++  EFI_KEY_DATA            KeyData;
++  EFI_KEY_NOTIFY_FUNCTION KeyNotificationFn;
++  LIST_ENTRY              NotifyEntry;
+ } KEYPAD_CONSOLE_IN_EX_NOTIFY;
+ 
+-#define KEYPAD_EFI_KEY_MAX_COUNT    256
++#define KEYPAD_EFI_KEY_MAX_COUNT 256
+ typedef struct {
+-  EFI_KEY_DATA                        Buffer[KEYPAD_EFI_KEY_MAX_COUNT];
+-  UINTN                               Head;
+-  UINTN                               Tail;
++  EFI_KEY_DATA Buffer[KEYPAD_EFI_KEY_MAX_COUNT];
++  UINTN        Head;
++  UINTN        Tail;
+ } EFI_KEY_QUEUE;
+ 
+ typedef struct {
+-  UINTN                               Signature;
++  UINTN Signature;
+ 
+-  EFI_HANDLE                          Handle;
+-  EFI_SIMPLE_TEXT_INPUT_PROTOCOL      ConIn;
+-  EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL   ConInEx;
++  EFI_HANDLE                        Handle;
++  EFI_SIMPLE_TEXT_INPUT_PROTOCOL    ConIn;
++  EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL ConInEx;
+ 
+-  EFI_EVENT                           TimerEvent;
++  EFI_EVENT TimerEvent;
+ 
+-  KEYPAD_DEVICE_PROTOCOL             *KeypadDevice;
+-  KEYPAD_RETURN_API                  KeypadReturnApi;
++  KEYPAD_DEVICE_PROTOCOL *KeypadDevice;
++  KEYPAD_RETURN_API       KeypadReturnApi;
+ 
+   // counter value of the last poll
+-  UINT64                              Last;
+-
+-  BOOLEAN                             LeftCtrl;
+-  BOOLEAN                             RightCtrl;
+-  BOOLEAN                             LeftAlt;
+-  BOOLEAN                             RightAlt;
+-  BOOLEAN                             LeftShift;
+-  BOOLEAN                             RightShift;
+-  BOOLEAN                             LeftLogo;
+-  BOOLEAN                             RightLogo;
+-  BOOLEAN                             Menu;
+-  BOOLEAN                             SysReq;
+-
+-  BOOLEAN                             CapsLock;
+-  BOOLEAN                             NumLock;
+-  BOOLEAN                             ScrollLock;
+-
+-  BOOLEAN                             IsSupportPartialKey;
++  UINT64 Last;
++
++  BOOLEAN LeftCtrl;
++  BOOLEAN RightCtrl;
++  BOOLEAN LeftAlt;
++  BOOLEAN RightAlt;
++  BOOLEAN LeftShift;
++  BOOLEAN RightShift;
++  BOOLEAN LeftLogo;
++  BOOLEAN RightLogo;
++  BOOLEAN Menu;
++  BOOLEAN SysReq;
++
++  BOOLEAN CapsLock;
++  BOOLEAN NumLock;
++  BOOLEAN ScrollLock;
++
++  BOOLEAN IsSupportPartialKey;
+   //
+   // Queue storing key scancodes
+   //
+-  EFI_KEY_QUEUE                       EfiKeyQueue;
+-  EFI_KEY_QUEUE                       EfiKeyQueueForNotify;
++  EFI_KEY_QUEUE EfiKeyQueue;
++  EFI_KEY_QUEUE EfiKeyQueueForNotify;
+ 
+   //
+   // Error state
+   //
+-  BOOLEAN                             KeypadErr;
++  BOOLEAN KeypadErr;
+ 
+-  EFI_UNICODE_STRING_TABLE            *ControllerNameTable;
++  EFI_UNICODE_STRING_TABLE *ControllerNameTable;
+ 
+   //
+   // Notification Function List
+   //
+-  LIST_ENTRY                          NotifyList;
+-  EFI_EVENT                           KeyNotifyProcessEvent;
++  LIST_ENTRY NotifyList;
++  EFI_EVENT  KeyNotifyProcessEvent;
+ } KEYPAD_CONSOLE_IN_DEV;
+ 
+-#define KEYPAD_CONSOLE_IN_DEV_FROM_KEYPAD_RETURN_API(a)  CR (a, KEYPAD_CONSOLE_IN_DEV, KeypadReturnApi, KEYPAD_CONSOLE_IN_DEV_SIGNATURE)
+-#define KEYPAD_CONSOLE_IN_DEV_FROM_THIS(a)  CR (a, KEYPAD_CONSOLE_IN_DEV, ConIn, KEYPAD_CONSOLE_IN_DEV_SIGNATURE)
+-#define TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(a) \
+-  CR (a, \
+-      KEYPAD_CONSOLE_IN_DEV, \
+-      ConInEx, \
+-      KEYPAD_CONSOLE_IN_DEV_SIGNATURE \
+-      )
++#define KEYPAD_CONSOLE_IN_DEV_FROM_KEYPAD_RETURN_API(a)                        \
++  CR(a, KEYPAD_CONSOLE_IN_DEV, KeypadReturnApi, KEYPAD_CONSOLE_IN_DEV_SIGNATURE)
++#define KEYPAD_CONSOLE_IN_DEV_FROM_THIS(a)                                     \
++  CR(a, KEYPAD_CONSOLE_IN_DEV, ConIn, KEYPAD_CONSOLE_IN_DEV_SIGNATURE)
++#define TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(a)                       \
++  CR(a, KEYPAD_CONSOLE_IN_DEV, ConInEx, KEYPAD_CONSOLE_IN_DEV_SIGNATURE)
+ 
+ #define TABLE_END 0x0
+ 
+-#define KEYPAD_TIMER_INTERVAL         200000  // 0.02s
++#define KEYPAD_TIMER_INTERVAL 200000 // 0.02s
+ 
+ //
+ // Driver entry point
+ //
+ /**
+-  The user Entry Point for module KeypadDxe. The user code starts with this function.
++  The user Entry Point for module KeypadDxe. The user code starts with this
++function.
+ 
+   @param[in] ImageHandle    The firmware allocated handle for the EFI image.
+   @param[in] SystemTable    A pointer to the EFI System Table.
+@@ -139,10 +138,8 @@ typedef struct {
+ **/
+ EFI_STATUS
+ EFIAPI
+-InstallKeypadDriver (
+-  IN EFI_HANDLE           ImageHandle,
+-  IN EFI_SYSTEM_TABLE     *SystemTable
+-  );
++InstallKeypadDriver(
++    IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable);
+ 
+ //
+ // Other functions that are used among .c files
+@@ -154,12 +151,7 @@ InstallKeypadDriver (
+   @param  Event                 Indicates the event that invoke this function.
+   @param  Context               Indicates the calling context.
+ **/
+-VOID
+-EFIAPI
+-KeyNotifyProcessHandler (
+-  IN  EFI_EVENT                 Event,
+-  IN  VOID                      *Context
+-  );
++VOID EFIAPI KeyNotifyProcessHandler(IN EFI_EVENT Event, IN VOID *Context);
+ 
+ /**
+   Perform 8042 controller and keypad Initialization.
+@@ -173,10 +165,8 @@ KeyNotifyProcessHandler (
+   @retval EFI_SUCCESS      Success to init keypad
+ **/
+ EFI_STATUS
+-InitKeypad (
+-  IN OUT KEYPAD_CONSOLE_IN_DEV *ConsoleIn,
+-  IN BOOLEAN                     ExtendedVerification
+-  );
++InitKeypad(
++    IN OUT KEYPAD_CONSOLE_IN_DEV *ConsoleIn, IN BOOLEAN ExtendedVerification);
+ 
+ /**
+   Timer event handler: read a series of scancodes from 8042
+@@ -189,12 +179,7 @@ InitKeypad (
+   @param Context - A KEYPAD_CONSOLE_IN_DEV pointer
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadTimerHandler (
+-  IN EFI_EVENT    Event,
+-  IN VOID         *Context
+-  );
++VOID EFIAPI KeypadTimerHandler(IN EFI_EVENT Event, IN VOID *Context);
+ 
+ /**
+   logic reset keypad
+@@ -203,16 +188,14 @@ KeypadTimerHandler (
+ 
+   @param This    Pointer to instance of EFI_SIMPLE_TEXT_INPUT_PROTOCOL
+   @param ExtendedVerification Indicate that the driver may perform a more
+-                              exhaustive verification operation of the device during
+-                              reset, now this par is ignored in this driver
++                              exhaustive verification operation of the device
++during reset, now this par is ignored in this driver
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadEfiReset (
+-  IN  EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *This,
+-  IN  BOOLEAN                         ExtendedVerification
+-  );
++KeypadEfiReset(
++    IN EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, IN BOOLEAN ExtendedVerification);
+ 
+ /**
+   Implement SIMPLE_TEXT_IN.ReadKeyStroke().
+@@ -225,10 +208,8 @@ KeypadEfiReset (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadReadKeyStroke (
+-  IN  EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *This,
+-  OUT EFI_INPUT_KEY                   *Key
+-  );
++KeypadReadKeyStroke(
++    IN EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, OUT EFI_INPUT_KEY *Key);
+ 
+ /**
+   Event notification function for SIMPLE_TEXT_IN.WaitForKey event
+@@ -238,27 +219,17 @@ KeypadReadKeyStroke (
+   @param Context  waitting context
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadWaitForKey (
+-  IN  EFI_EVENT               Event,
+-  IN  VOID                    *Context
+-  );
++VOID EFIAPI KeypadWaitForKey(IN EFI_EVENT Event, IN VOID *Context);
+ 
+ /**
+-  Event notification function for SIMPLE_TEXT_INPUT_EX_PROTOCOL.WaitForKeyEx event
+-  Signal the event if there is key available
++  Event notification function for SIMPLE_TEXT_INPUT_EX_PROTOCOL.WaitForKeyEx
++event Signal the event if there is key available
+ 
+   @param Event    event object
+   @param Context  waiting context
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadWaitForKeyEx (
+-  IN  EFI_EVENT               Event,
+-  IN  VOID                    *Context
+-  );
++VOID EFIAPI KeypadWaitForKeyEx(IN EFI_EVENT Event, IN VOID *Context);
+ 
+ //
+ // Simple Text Input Ex protocol function prototypes
+@@ -271,16 +242,15 @@ KeypadWaitForKeyEx (
+   @param ExtendedVerification - Driver may perform diagnostics on reset.
+ 
+   @retval EFI_SUCCESS           - The device was reset.
+-  @retval EFI_DEVICE_ERROR      - The device is not functioning properly and could
+-                                  not be reset.
++  @retval EFI_DEVICE_ERROR      - The device is not functioning properly and
++could not be reset.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadEfiResetEx (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN BOOLEAN                            ExtendedVerification
+-  );
++KeypadEfiResetEx(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This,
++    IN BOOLEAN ExtendedVerification);
+ 
+ /**
+     Reads the next keystroke from the input device. The WaitForKey Event can
+@@ -288,22 +258,20 @@ KeypadEfiResetEx (
+ 
+ 
+     @param This       - Protocol instance pointer.
+-    @param KeyData    - A pointer to a buffer that is filled in with the keystroke
+-                 state data for the key that was pressed.
++    @param KeyData    - A pointer to a buffer that is filled in with the
++keystroke state data for the key that was pressed.
+ 
+     @retval EFI_SUCCESS           - The keystroke information was returned.
+     @retval EFI_NOT_READY         - There was no keystroke data availiable.
+-    @retval EFI_DEVICE_ERROR      - The keystroke information was not returned due to
+-                            hardware errors.
++    @retval EFI_DEVICE_ERROR      - The keystroke information was not returned
++due to hardware errors.
+     @retval EFI_INVALID_PARAMETER - KeyData is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadReadKeyStrokeEx (
+-  IN  EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This,
+-  OUT EFI_KEY_DATA                      *KeyData
+-  );
++KeypadReadKeyStrokeEx(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, OUT EFI_KEY_DATA *KeyData);
+ 
+ /**
+   Set certain state for the input device.
+@@ -313,61 +281,64 @@ KeypadReadKeyStrokeEx (
+                         state for the input device.
+ 
+   @retval EFI_SUCCESS           - The device state was set successfully.
+-  @retval EFI_DEVICE_ERROR      - The device is not functioning correctly and could
+-                            not have the setting adjusted.
+-  @retval EFI_UNSUPPORTED       - The device does not have the ability to set its state.
++  @retval EFI_DEVICE_ERROR      - The device is not functioning correctly and
++could not have the setting adjusted.
++  @retval EFI_UNSUPPORTED       - The device does not have the ability to set
++its state.
+   @retval EFI_INVALID_PARAMETER - KeyToggleState is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadSetState (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN EFI_KEY_TOGGLE_STATE               *KeyToggleState
+-  );
++KeypadSetState(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This,
++    IN EFI_KEY_TOGGLE_STATE *KeyToggleState);
+ 
+ /**
+-    Register a notification function for a particular keystroke for the input device.
++    Register a notification function for a particular keystroke for the input
++device.
+ 
+     @param This                    - Protocol instance pointer.
+-    @param KeyData                 - A pointer to a buffer that is filled in with the keystroke
+-                              information data for the key that was pressed.
+-    @param KeyNotificationFunction - Points to the function to be called when the key
+-                              sequence is typed specified by KeyData.
+-    @param NotifyHandle            - Points to the unique handle assigned to the registered notification.
+-
+-    @retval EFI_SUCCESS             - The notification function was registered successfully.
+-    @retval EFI_OUT_OF_RESOURCES    - Unable to allocate resources for necesssary data structures.
++    @param KeyData                 - A pointer to a buffer that is filled in
++with the keystroke information data for the key that was pressed.
++    @param KeyNotificationFunction - Points to the function to be called when
++the key sequence is typed specified by KeyData.
++    @param NotifyHandle            - Points to the unique handle assigned to the
++registered notification.
++
++    @retval EFI_SUCCESS             - The notification function was registered
++successfully.
++    @retval EFI_OUT_OF_RESOURCES    - Unable to allocate resources for
++necesssary data structures.
+     @retval EFI_INVALID_PARAMETER   - KeyData or NotifyHandle is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadRegisterKeyNotify (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN EFI_KEY_DATA                       *KeyData,
+-  IN EFI_KEY_NOTIFY_FUNCTION            KeyNotificationFunction,
+-  OUT VOID                              **NotifyHandle
+-  );
++KeypadRegisterKeyNotify(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, IN EFI_KEY_DATA *KeyData,
++    IN EFI_KEY_NOTIFY_FUNCTION KeyNotificationFunction,
++    OUT VOID **NotifyHandle);
+ 
+ /**
+     Remove a registered notification function from a particular keystroke.
+ 
+     @param This                    - Protocol instance pointer.
+-    @param NotificationHandle      - The handle of the notification function being unregistered.
++    @param NotificationHandle      - The handle of the notification function
++being unregistered.
+ 
+ 
+-    @retval EFI_SUCCESS             - The notification function was unregistered successfully.
++    @retval EFI_SUCCESS             - The notification function was unregistered
++successfully.
+     @retval EFI_INVALID_PARAMETER   - The NotificationHandle is invalid.
+-    @retval EFI_NOT_FOUND           - Can not find the matching entry in database.
++    @retval EFI_NOT_FOUND           - Can not find the matching entry in
++database.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadUnregisterKeyNotify (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN VOID                               *NotificationHandle
+-  );
++KeypadUnregisterKeyNotify(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, IN VOID *NotificationHandle);
+ 
+ /**
+   Push one key data to the EFI key buffer.
+@@ -375,28 +346,21 @@ KeypadUnregisterKeyNotify (
+   @param Queue     Pointer to instance of EFI_KEY_QUEUE.
+   @param KeyData   The key data to push.
+ **/
+-VOID
+-PushEfikeyBufTail (
+-  IN  EFI_KEY_QUEUE         *Queue,
+-  IN  EFI_KEY_DATA          *KeyData
+-  );
++VOID PushEfikeyBufTail(IN EFI_KEY_QUEUE *Queue, IN EFI_KEY_DATA *KeyData);
+ 
+ /**
+   Judge whether is a registed key
+ 
+-  @param RegsiteredData       A pointer to a buffer that is filled in with the keystroke
+-                              state data for the key that was registered.
+-  @param InputData            A pointer to a buffer that is filled in with the keystroke
+-                              state data for the key that was pressed.
++  @param RegsiteredData       A pointer to a buffer that is filled in with the
++keystroke state data for the key that was registered.
++  @param InputData            A pointer to a buffer that is filled in with the
++keystroke state data for the key that was pressed.
+ 
+   @retval TRUE                Key be pressed matches a registered key.
+   @retval FLASE               Match failed.
+ 
+ **/
+ BOOLEAN
+-IsKeyRegistered (
+-  IN EFI_KEY_DATA  *RegsiteredData,
+-  IN EFI_KEY_DATA  *InputData
+-  );
++IsKeyRegistered(IN EFI_KEY_DATA *RegsiteredData, IN EFI_KEY_DATA *InputData);
+ 
+ #endif
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/KeypadController.c b/MSM8909Pkg/Drivers/KeypadDxe/KeypadController.c
+index 1d83664..47c6b9a 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/KeypadController.c
++++ b/MSM8909Pkg/Drivers/KeypadDxe/KeypadController.c
+@@ -3,9 +3,9 @@
+ 
+ Copyright (c) 2006 - 2016, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+@@ -21,11 +21,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+   @param ErrMsg    Unicode string of error message
+ 
+ **/
+-VOID
+-KeypadError (
+-  IN KEYPAD_CONSOLE_IN_DEV *ConsoleIn,
+-  IN CHAR16                  *ErrMsg
+-  )
++VOID KeypadError(IN KEYPAD_CONSOLE_IN_DEV *ConsoleIn, IN CHAR16 *ErrMsg)
+ {
+   ConsoleIn->KeypadErr = TRUE;
+ }
+@@ -41,42 +37,39 @@ KeypadError (
+   @param Context     A KEYPAD_CONSOLE_IN_DEV pointer
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadTimerHandler (
+-  IN EFI_EVENT    Event,
+-  IN VOID         *Context
+-  )
++VOID EFIAPI KeypadTimerHandler(IN EFI_EVENT Event, IN VOID *Context)
+ 
+ {
+-  EFI_TPL                 OldTpl;
+-  KEYPAD_CONSOLE_IN_DEV   *ConsoleIn;
++  EFI_TPL                OldTpl;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleIn;
+ 
+-  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *) Context;
++  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *)Context;
+ 
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+-  if (((KEYPAD_CONSOLE_IN_DEV *) Context)->KeypadErr) {
++  if (((KEYPAD_CONSOLE_IN_DEV *)Context)->KeypadErr) {
+     //
+     // Leave critical section and return
+     //
+-    gBS->RestoreTPL (OldTpl);
+-    return ;
++    gBS->RestoreTPL(OldTpl);
++    return;
+   }
+ 
+   UINT64 CurrentCounterValue = GetPerformanceCounter();
+-  UINT64 DeltaCounter = CurrentCounterValue - ConsoleIn->Last;
+-  ConsoleIn->Last = CurrentCounterValue;
++  UINT64 DeltaCounter        = CurrentCounterValue - ConsoleIn->Last;
++  ConsoleIn->Last            = CurrentCounterValue;
+ 
+-  ConsoleIn->KeypadDevice->GetKeys(ConsoleIn->KeypadDevice, &ConsoleIn->KeypadReturnApi, GetTimeInNanoSecond(DeltaCounter));
++  ConsoleIn->KeypadDevice->GetKeys(
++      ConsoleIn->KeypadDevice, &ConsoleIn->KeypadReturnApi,
++      GetTimeInNanoSecond(DeltaCounter));
+ 
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+ }
+ 
+ /**
+@@ -91,22 +84,20 @@ KeypadTimerHandler (
+   @retval EFI_SUCCESS      Success to init keypad
+ **/
+ EFI_STATUS
+-InitKeypad (
+-  IN OUT KEYPAD_CONSOLE_IN_DEV *ConsoleIn,
+-  IN BOOLEAN                     ExtendedVerification
+-  )
++InitKeypad(
++    IN OUT KEYPAD_CONSOLE_IN_DEV *ConsoleIn, IN BOOLEAN ExtendedVerification)
+ {
+-  EFI_STATUS              Status;
++  EFI_STATUS Status;
+ 
+-  Status                 = EFI_SUCCESS;
++  Status = EFI_SUCCESS;
+ 
+   ConsoleIn->KeypadDevice->Reset(ConsoleIn->KeypadDevice);
+ 
+   //
+   // Clear Memory Scancode Buffer
+   //
+-  ConsoleIn->EfiKeyQueue.Head   = 0;
+-  ConsoleIn->EfiKeyQueue.Tail   = 0;
++  ConsoleIn->EfiKeyQueue.Head          = 0;
++  ConsoleIn->EfiKeyQueue.Tail          = 0;
+   ConsoleIn->EfiKeyQueueForNotify.Head = 0;
+   ConsoleIn->EfiKeyQueueForNotify.Tail = 0;
+ 
+@@ -129,10 +120,10 @@ InitKeypad (
+ 
+   ConsoleIn->IsSupportPartialKey = FALSE;
+ 
+-  if (!EFI_ERROR (Status)) {
++  if (!EFI_ERROR(Status)) {
+     return EFI_SUCCESS;
+-  } else {
++  }
++  else {
+     return EFI_DEVICE_ERROR;
+   }
+-
+ }
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf b/MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
+index 33e92e3..bd0f946 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
++++ b/MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
+@@ -55,3 +55,4 @@
+   gEfiSimpleTextInProtocolGuid                  ## BY_START
+   gEfiSimpleTextInputExProtocolGuid             ## BY_START
+   gEFIDroidKeypadDeviceProtocolGuid
++  gEfiDevicePathProtocolGuid
+diff --git a/MSM8909Pkg/Drivers/KeypadDxe/KeypadTextIn.c b/MSM8909Pkg/Drivers/KeypadDxe/KeypadTextIn.c
+index 446e35a..93a5e08 100644
+--- a/MSM8909Pkg/Drivers/KeypadDxe/KeypadTextIn.c
++++ b/MSM8909Pkg/Drivers/KeypadDxe/KeypadTextIn.c
+@@ -4,16 +4,15 @@
+ 
+ Copyright (c) 2006 - 2016, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+ 
+ **/
+ 
+-
+ #include "Keypad.h"
+ 
+ /**
+@@ -25,11 +24,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+   @retval FALSE   The EFI key buffer isn't empty.
+ **/
+ BOOLEAN
+-IsEfikeyBufEmpty (
+-  IN  EFI_KEY_QUEUE         *Queue
+-  )
++IsEfikeyBufEmpty(IN EFI_KEY_QUEUE *Queue)
+ {
+-  return (BOOLEAN) (Queue->Head == Queue->Tail);
++  return (BOOLEAN)(Queue->Head == Queue->Tail);
+ }
+ 
+ /**
+@@ -42,19 +39,16 @@ IsEfikeyBufEmpty (
+   @retval EFI_NOT_READY There is no key data available.
+ **/
+ EFI_STATUS
+-PopEfikeyBufHead (
+-  IN  EFI_KEY_QUEUE         *Queue,
+-  OUT EFI_KEY_DATA          *KeyData OPTIONAL
+-  )
++PopEfikeyBufHead(IN EFI_KEY_QUEUE *Queue, OUT EFI_KEY_DATA *KeyData OPTIONAL)
+ {
+-  if (IsEfikeyBufEmpty (Queue)) {
++  if (IsEfikeyBufEmpty(Queue)) {
+     return EFI_NOT_READY;
+   }
+   //
+   // Retrieve and remove the values
+   //
+   if (KeyData != NULL) {
+-    CopyMem (KeyData, &Queue->Buffer[Queue->Head], sizeof (EFI_KEY_DATA));
++    CopyMem(KeyData, &Queue->Buffer[Queue->Head], sizeof(EFI_KEY_DATA));
+   }
+   Queue->Head = (Queue->Head + 1) % KEYPAD_EFI_KEY_MAX_COUNT;
+   return EFI_SUCCESS;
+@@ -66,62 +60,57 @@ PopEfikeyBufHead (
+   @param Queue     Pointer to instance of EFI_KEY_QUEUE.
+   @param KeyData   The key data to push.
+ **/
+-VOID
+-PushEfikeyBufTail (
+-  IN  EFI_KEY_QUEUE         *Queue,
+-  IN  EFI_KEY_DATA          *KeyData
+-  )
++VOID PushEfikeyBufTail(IN EFI_KEY_QUEUE *Queue, IN EFI_KEY_DATA *KeyData)
+ {
+   if ((Queue->Tail + 1) % KEYPAD_EFI_KEY_MAX_COUNT == Queue->Head) {
+     //
+     // If Queue is full, pop the one from head.
+     //
+-    PopEfikeyBufHead (Queue, NULL);
++    PopEfikeyBufHead(Queue, NULL);
+   }
+-  CopyMem (&Queue->Buffer[Queue->Tail], KeyData, sizeof (EFI_KEY_DATA));
++  CopyMem(&Queue->Buffer[Queue->Tail], KeyData, sizeof(EFI_KEY_DATA));
+   Queue->Tail = (Queue->Tail + 1) % KEYPAD_EFI_KEY_MAX_COUNT;
+ }
+ 
+ /**
+   Judge whether is a registed key
+ 
+-  @param RegsiteredData       A pointer to a buffer that is filled in with the keystroke
+-                              state data for the key that was registered.
+-  @param InputData            A pointer to a buffer that is filled in with the keystroke
+-                              state data for the key that was pressed.
++  @param RegsiteredData       A pointer to a buffer that is filled in with the
++keystroke state data for the key that was registered.
++  @param InputData            A pointer to a buffer that is filled in with the
++keystroke state data for the key that was pressed.
+ 
+   @retval TRUE                Key be pressed matches a registered key.
+   @retval FLASE               Match failed.
+ 
+ **/
+ BOOLEAN
+-IsKeyRegistered (
+-  IN EFI_KEY_DATA  *RegsiteredData,
+-  IN EFI_KEY_DATA  *InputData
+-  )
++IsKeyRegistered(IN EFI_KEY_DATA *RegsiteredData, IN EFI_KEY_DATA *InputData)
+ 
+ {
+-  ASSERT (RegsiteredData != NULL && InputData != NULL);
++  ASSERT(RegsiteredData != NULL && InputData != NULL);
+ 
+-  if ((RegsiteredData->Key.ScanCode    != InputData->Key.ScanCode) ||
++  if ((RegsiteredData->Key.ScanCode != InputData->Key.ScanCode) ||
+       (RegsiteredData->Key.UnicodeChar != InputData->Key.UnicodeChar)) {
+     return FALSE;
+   }
+ 
+   //
+-  // Assume KeyShiftState/KeyToggleState = 0 in Registered key data means these state could be ignored.
++  // Assume KeyShiftState/KeyToggleState = 0 in Registered key data means these
++  // state could be ignored.
+   //
+   if (RegsiteredData->KeyState.KeyShiftState != 0 &&
+-      RegsiteredData->KeyState.KeyShiftState != InputData->KeyState.KeyShiftState) {
++      RegsiteredData->KeyState.KeyShiftState !=
++          InputData->KeyState.KeyShiftState) {
+     return FALSE;
+   }
+   if (RegsiteredData->KeyState.KeyToggleState != 0 &&
+-      RegsiteredData->KeyState.KeyToggleState != InputData->KeyState.KeyToggleState) {
++      RegsiteredData->KeyState.KeyToggleState !=
++          InputData->KeyState.KeyToggleState) {
+     return FALSE;
+   }
+ 
+   return TRUE;
+-
+ }
+ 
+ /**
+@@ -129,26 +118,24 @@ IsKeyRegistered (
+     be used to test for existance of a keystroke via WaitForEvent () call.
+ 
+     @param ConsoleInDev          Keypad private structure
+-    @param KeyData               A pointer to a buffer that is filled in with the keystroke
+-                                 state data for the key that was pressed.
++    @param KeyData               A pointer to a buffer that is filled in with
++the keystroke state data for the key that was pressed.
+ 
+ 
+     @retval EFI_SUCCESS             The keystroke information was returned.
+     @retval EFI_NOT_READY           There was no keystroke data availiable.
+-    @retval EFI_DEVICE_ERROR        The keystroke information was not returned due to
+-                                    hardware errors.
++    @retval EFI_DEVICE_ERROR        The keystroke information was not returned
++due to hardware errors.
+     @retval EFI_INVALID_PARAMETER   KeyData is NULL.
+ 
+ **/
+ EFI_STATUS
+-KeypadReadKeyStrokeWorker (
+-  IN  KEYPAD_CONSOLE_IN_DEV             *ConsoleInDev,
+-  OUT EFI_KEY_DATA                      *KeyData
+-  )
++KeypadReadKeyStrokeWorker(
++    IN KEYPAD_CONSOLE_IN_DEV *ConsoleInDev, OUT EFI_KEY_DATA *KeyData)
+ 
+ {
+-  EFI_STATUS                            Status;
+-  EFI_TPL                               OldTpl;
++  EFI_STATUS Status;
++  EFI_TPL    OldTpl;
+ 
+   if (KeyData == NULL) {
+     return EFI_INVALID_PARAMETER;
+@@ -157,41 +144,42 @@ KeypadReadKeyStrokeWorker (
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+-  KeypadTimerHandler (NULL, ConsoleInDev);
++  KeypadTimerHandler(NULL, ConsoleInDev);
+ 
+   if (ConsoleInDev->KeypadErr) {
+     Status = EFI_DEVICE_ERROR;
+-  } else {
+-    Status = PopEfikeyBufHead (&ConsoleInDev->EfiKeyQueue, KeyData);
++  }
++  else {
++    Status = PopEfikeyBufHead(&ConsoleInDev->EfiKeyQueue, KeyData);
+   }
+ 
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+   return Status;
+ }
+ 
+ /**
+-  Perform 8042 controller and keypad initialization which implement SIMPLE_TEXT_IN.Reset()
++  Perform 8042 controller and keypad initialization which implement
++SIMPLE_TEXT_IN.Reset()
+ 
+-  @param This                 Pointer to instance of EFI_SIMPLE_TEXT_INPUT_PROTOCOL
++  @param This                 Pointer to instance of
++EFI_SIMPLE_TEXT_INPUT_PROTOCOL
+   @param ExtendedVerification Indicate that the driver may perform a more
+-                              exhaustive verification operation of the device during
+-                              reset, now this par is ignored in this driver
++                              exhaustive verification operation of the device
++during reset, now this par is ignored in this driver
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadEfiReset (
+-  IN  EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *This,
+-  IN  BOOLEAN                         ExtendedVerification
+-  )
++KeypadEfiReset(
++    IN EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, IN BOOLEAN ExtendedVerification)
+ {
+-  EFI_STATUS              Status;
+-  KEYPAD_CONSOLE_IN_DEV   *ConsoleIn;
+-  EFI_TPL                 OldTpl;
++  EFI_STATUS             Status;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleIn;
++  EFI_TPL                OldTpl;
+ 
+-  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+   if (ConsoleIn->KeypadErr) {
+     return EFI_DEVICE_ERROR;
+   }
+@@ -199,30 +187,31 @@ KeypadEfiReset (
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+   //
+   // Call InitKeypad to initialize the keypad
+   //
+-  Status = InitKeypad (ConsoleIn, ExtendedVerification);
+-  if (EFI_ERROR (Status)) {
++  Status = InitKeypad(ConsoleIn, ExtendedVerification);
++  if (EFI_ERROR(Status)) {
+     //
+     // Leave critical section and return
+     //
+-    gBS->RestoreTPL (OldTpl);
++    gBS->RestoreTPL(OldTpl);
+     return EFI_DEVICE_ERROR;
+   }
+ 
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+ 
+   return EFI_SUCCESS;
+ }
+ 
+ /**
+-  Retrieve key values for driver user which implement SIMPLE_TEXT_IN.ReadKeyStroke().
++  Retrieve key values for driver user which implement
++SIMPLE_TEXT_IN.ReadKeyStroke().
+ 
+   @param This    Pointer to instance of EFI_SIMPLE_TEXT_INPUT_PROTOCOL
+   @param Key     The output buffer for key value
+@@ -231,16 +220,14 @@ KeypadEfiReset (
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadReadKeyStroke (
+-  IN  EFI_SIMPLE_TEXT_INPUT_PROTOCOL  *This,
+-  OUT EFI_INPUT_KEY                   *Key
+-  )
++KeypadReadKeyStroke(
++    IN EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, OUT EFI_INPUT_KEY *Key)
+ {
+-  EFI_STATUS              Status;
+-  KEYPAD_CONSOLE_IN_DEV   *ConsoleIn;
+-  EFI_KEY_DATA            KeyData;
++  EFI_STATUS             Status;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleIn;
++  EFI_KEY_DATA           KeyData;
+ 
+-  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleIn = KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+ 
+   //
+   // Considering if the partial keystroke is enabled, there maybe a partial
+@@ -251,29 +238,33 @@ KeypadReadKeyStroke (
+     //
+     // If there is no pending key, then return.
+     //
+-    Status = KeypadReadKeyStrokeWorker (ConsoleIn, &KeyData);
+-    if (EFI_ERROR (Status)) {
++    Status = KeypadReadKeyStrokeWorker(ConsoleIn, &KeyData);
++    if (EFI_ERROR(Status)) {
+       return Status;
+     }
+     //
+     // If it is partial keystroke, skip it.
+     //
+-    if (KeyData.Key.ScanCode == SCAN_NULL && KeyData.Key.UnicodeChar == CHAR_NULL) {
++    if (KeyData.Key.ScanCode == SCAN_NULL &&
++        KeyData.Key.UnicodeChar == CHAR_NULL) {
+       continue;
+     }
+     //
+     // Translate the CTRL-Alpha characters to their corresponding control value
+     // (ctrl-a = 0x0001 through ctrl-Z = 0x001A)
+     //
+-    if ((KeyData.KeyState.KeyShiftState & (EFI_LEFT_CONTROL_PRESSED | EFI_RIGHT_CONTROL_PRESSED)) != 0) {
++    if ((KeyData.KeyState.KeyShiftState &
++         (EFI_LEFT_CONTROL_PRESSED | EFI_RIGHT_CONTROL_PRESSED)) != 0) {
+       if (KeyData.Key.UnicodeChar >= L'a' && KeyData.Key.UnicodeChar <= L'z') {
+-        KeyData.Key.UnicodeChar = (CHAR16) (KeyData.Key.UnicodeChar - L'a' + 1);
+-      } else if (KeyData.Key.UnicodeChar >= L'A' && KeyData.Key.UnicodeChar <= L'Z') {
+-        KeyData.Key.UnicodeChar = (CHAR16) (KeyData.Key.UnicodeChar - L'A' + 1);
++        KeyData.Key.UnicodeChar = (CHAR16)(KeyData.Key.UnicodeChar - L'a' + 1);
++      }
++      else if (
++          KeyData.Key.UnicodeChar >= L'A' && KeyData.Key.UnicodeChar <= L'Z') {
++        KeyData.Key.UnicodeChar = (CHAR16)(KeyData.Key.UnicodeChar - L'A' + 1);
+       }
+     }
+ 
+-    CopyMem (Key, &KeyData.Key, sizeof (EFI_INPUT_KEY));
++    CopyMem(Key, &KeyData.Key, sizeof(EFI_INPUT_KEY));
+     return EFI_SUCCESS;
+   }
+ }
+@@ -286,25 +277,20 @@ KeypadReadKeyStroke (
+   @param Context  waitting context
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadWaitForKey (
+-  IN  EFI_EVENT               Event,
+-  IN  VOID                    *Context
+-  )
++VOID EFIAPI KeypadWaitForKey(IN EFI_EVENT Event, IN VOID *Context)
+ {
+-  EFI_TPL                     OldTpl;
+-  KEYPAD_CONSOLE_IN_DEV       *ConsoleIn;
+-  EFI_KEY_DATA                KeyData;
++  EFI_TPL                OldTpl;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleIn;
++  EFI_KEY_DATA           KeyData;
+ 
+-  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *) Context;
++  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *)Context;
+ 
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+-  KeypadTimerHandler (NULL, ConsoleIn);
++  KeypadTimerHandler(NULL, ConsoleIn);
+ 
+   if (!ConsoleIn->KeypadErr) {
+     //
+@@ -313,46 +299,41 @@ KeypadWaitForKey (
+     // keystroke in the queue, so here skip the partial keystroke and get the
+     // next key from the queue
+     //
+-    while (!IsEfikeyBufEmpty (&ConsoleIn->EfiKeyQueue)) {
+-      CopyMem (
+-        &KeyData,
+-        &(ConsoleIn->EfiKeyQueue.Buffer[ConsoleIn->EfiKeyQueue.Head]),
+-        sizeof (EFI_KEY_DATA)
+-        );
+-      if (KeyData.Key.ScanCode == SCAN_NULL && KeyData.Key.UnicodeChar == CHAR_NULL) {
+-        PopEfikeyBufHead (&ConsoleIn->EfiKeyQueue, &KeyData);
++    while (!IsEfikeyBufEmpty(&ConsoleIn->EfiKeyQueue)) {
++      CopyMem(
++          &KeyData,
++          &(ConsoleIn->EfiKeyQueue.Buffer[ConsoleIn->EfiKeyQueue.Head]),
++          sizeof(EFI_KEY_DATA));
++      if (KeyData.Key.ScanCode == SCAN_NULL &&
++          KeyData.Key.UnicodeChar == CHAR_NULL) {
++        PopEfikeyBufHead(&ConsoleIn->EfiKeyQueue, &KeyData);
+         continue;
+       }
+       //
+       // if there is pending value key, signal the event.
+       //
+-      gBS->SignalEvent (Event);
++      gBS->SignalEvent(Event);
+       break;
+     }
+   }
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+ }
+ 
+ /**
+-  Event notification function for SIMPLE_TEXT_INPUT_EX_PROTOCOL.WaitForKeyEx event
+-  Signal the event if there is key available
++  Event notification function for SIMPLE_TEXT_INPUT_EX_PROTOCOL.WaitForKeyEx
++event Signal the event if there is key available
+ 
+   @param Event    event object
+   @param Context  waiting context
+ 
+ **/
+-VOID
+-EFIAPI
+-KeypadWaitForKeyEx (
+-  IN  EFI_EVENT               Event,
+-  IN  VOID                    *Context
+-  )
++VOID EFIAPI KeypadWaitForKeyEx(IN EFI_EVENT Event, IN VOID *Context)
+ 
+ {
+-  KeypadWaitForKey (Event, Context);
++  KeypadWaitForKey(Event, Context);
+ }
+ 
+ /**
+@@ -362,26 +343,21 @@ KeypadWaitForKeyEx (
+   @param ExtendedVerification     Driver may perform diagnostics on reset.
+ 
+   @retval EFI_SUCCESS             The device was reset.
+-  @retval EFI_DEVICE_ERROR        The device is not functioning properly and could
+-                                  not be reset.
++  @retval EFI_DEVICE_ERROR        The device is not functioning properly and
++could not be reset.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadEfiResetEx (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN BOOLEAN                            ExtendedVerification
+-  )
++KeypadEfiResetEx(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, IN BOOLEAN ExtendedVerification)
+ 
+ {
+-  KEYPAD_CONSOLE_IN_DEV                 *ConsoleInDev;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleInDev;
+ 
+-  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+ 
+-  return ConsoleInDev->ConIn.Reset (
+-                               &ConsoleInDev->ConIn,
+-                               ExtendedVerification
+-                               );
++  return ConsoleInDev->ConIn.Reset(&ConsoleInDev->ConIn, ExtendedVerification);
+ }
+ 
+ /**
+@@ -390,32 +366,30 @@ KeypadEfiResetEx (
+ 
+ 
+     @param This         Protocol instance pointer.
+-    @param KeyData      A pointer to a buffer that is filled in with the keystroke
+-                        state data for the key that was pressed.
++    @param KeyData      A pointer to a buffer that is filled in with the
++keystroke state data for the key that was pressed.
+ 
+     @retval EFI_SUCCESS           The keystroke information was returned.
+     @retval EFI_NOT_READY         There was no keystroke data availiable.
+-    @retval EFI_DEVICE_ERROR      The keystroke information was not returned due to
+-                                  hardware errors.
++    @retval EFI_DEVICE_ERROR      The keystroke information was not returned due
++to hardware errors.
+     @retval EFI_INVALID_PARAMETER KeyData is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadReadKeyStrokeEx (
+-  IN  EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This,
+-  OUT EFI_KEY_DATA                      *KeyData
+-  )
++KeypadReadKeyStrokeEx(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, OUT EFI_KEY_DATA *KeyData)
+ 
+ {
+-  KEYPAD_CONSOLE_IN_DEV                 *ConsoleInDev;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleInDev;
+ 
+   if (KeyData == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+-  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
+-  return KeypadReadKeyStrokeWorker (ConsoleInDev, KeyData);
++  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
++  return KeypadReadKeyStrokeWorker(ConsoleInDev, KeyData);
+ }
+ 
+ /**
+@@ -426,34 +400,34 @@ KeypadReadKeyStrokeEx (
+                             state for the input device.
+ 
+   @retval EFI_SUCCESS           The device state was set successfully.
+-  @retval EFI_DEVICE_ERROR      The device is not functioning correctly and could
+-                                not have the setting adjusted.
+-  @retval EFI_UNSUPPORTED       The device does not have the ability to set its state.
++  @retval EFI_DEVICE_ERROR      The device is not functioning correctly and
++could not have the setting adjusted.
++  @retval EFI_UNSUPPORTED       The device does not have the ability to set its
++state.
+   @retval EFI_INVALID_PARAMETER KeyToggleState is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadSetState (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN EFI_KEY_TOGGLE_STATE               *KeyToggleState
+-  )
++KeypadSetState(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This,
++    IN EFI_KEY_TOGGLE_STATE *KeyToggleState)
+ 
+ {
+-  EFI_STATUS                            Status;
+-  KEYPAD_CONSOLE_IN_DEV                 *ConsoleInDev;
+-  EFI_TPL                               OldTpl;
++  EFI_STATUS             Status = EFI_SUCCESS;
++  KEYPAD_CONSOLE_IN_DEV *ConsoleInDev;
++  EFI_TPL                OldTpl;
+ 
+   if (KeyToggleState == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+-  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+ 
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+   if (ConsoleInDev->KeypadErr) {
+     Status = EFI_DEVICE_ERROR;
+@@ -490,68 +464,69 @@ Exit:
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+ 
+   return Status;
+-
+ }
+ 
+ /**
+-    Register a notification function for a particular keystroke for the input device.
++    Register a notification function for a particular keystroke for the input
++device.
+ 
+     @param This                       Protocol instance pointer.
+-    @param KeyData                    A pointer to a buffer that is filled in with the keystroke
+-                                      information data for the key that was pressed.
+-    @param KeyNotificationFunction    Points to the function to be called when the key
+-                                      sequence is typed specified by KeyData.
+-    @param NotifyHandle               Points to the unique handle assigned to the registered notification.
+-
+-    @retval EFI_SUCCESS               The notification function was registered successfully.
+-    @retval EFI_OUT_OF_RESOURCES      Unable to allocate resources for necesssary data structures.
+-    @retval EFI_INVALID_PARAMETER     KeyData or NotifyHandle or KeyNotificationFunction is NULL.
++    @param KeyData                    A pointer to a buffer that is filled in
++with the keystroke information data for the key that was pressed.
++    @param KeyNotificationFunction    Points to the function to be called when
++the key sequence is typed specified by KeyData.
++    @param NotifyHandle               Points to the unique handle assigned to
++the registered notification.
++
++    @retval EFI_SUCCESS               The notification function was registered
++successfully.
++    @retval EFI_OUT_OF_RESOURCES      Unable to allocate resources for
++necesssary data structures.
++    @retval EFI_INVALID_PARAMETER     KeyData or NotifyHandle or
++KeyNotificationFunction is NULL.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadRegisterKeyNotify (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN EFI_KEY_DATA                       *KeyData,
+-  IN EFI_KEY_NOTIFY_FUNCTION            KeyNotificationFunction,
+-  OUT VOID                              **NotifyHandle
+-  )
++KeypadRegisterKeyNotify(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, IN EFI_KEY_DATA *KeyData,
++    IN EFI_KEY_NOTIFY_FUNCTION KeyNotificationFunction, OUT VOID **NotifyHandle)
+ {
+-  EFI_STATUS                            Status;
+-  KEYPAD_CONSOLE_IN_DEV                 *ConsoleInDev;
+-  EFI_TPL                               OldTpl;
+-  LIST_ENTRY                            *Link;
+-  KEYPAD_CONSOLE_IN_EX_NOTIFY           *CurrentNotify;
+-  KEYPAD_CONSOLE_IN_EX_NOTIFY           *NewNotify;
+-
+-  if (KeyData == NULL || NotifyHandle == NULL || KeyNotificationFunction == NULL) {
++  EFI_STATUS                   Status;
++  KEYPAD_CONSOLE_IN_DEV *      ConsoleInDev;
++  EFI_TPL                      OldTpl;
++  LIST_ENTRY *                 Link;
++  KEYPAD_CONSOLE_IN_EX_NOTIFY *CurrentNotify;
++  KEYPAD_CONSOLE_IN_EX_NOTIFY *NewNotify;
++
++  if (KeyData == NULL || NotifyHandle == NULL ||
++      KeyNotificationFunction == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+-  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+ 
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+   //
+-  // Return EFI_SUCCESS if the (KeyData, NotificationFunction) is already registered.
++  // Return EFI_SUCCESS if the (KeyData, NotificationFunction) is already
++  // registered.
+   //
+-  for (Link = ConsoleInDev->NotifyList.ForwardLink; Link != &ConsoleInDev->NotifyList; Link = Link->ForwardLink) {
+-    CurrentNotify = CR (
+-                      Link,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY,
+-                      NotifyEntry,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE
+-                      );
+-    if (IsKeyRegistered (&CurrentNotify->KeyData, KeyData)) {
++  for (Link = ConsoleInDev->NotifyList.ForwardLink;
++       Link != &ConsoleInDev->NotifyList; Link = Link->ForwardLink) {
++    CurrentNotify =
++        CR(Link, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry,
++           KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
++    if (IsKeyRegistered(&CurrentNotify->KeyData, KeyData)) {
+       if (CurrentNotify->KeyNotificationFn == KeyNotificationFunction) {
+         *NotifyHandle = CurrentNotify;
+-        Status = EFI_SUCCESS;
++        Status        = EFI_SUCCESS;
+         goto Exit;
+       }
+     }
+@@ -560,7 +535,8 @@ KeypadRegisterKeyNotify (
+   //
+   // Allocate resource to save the notification function
+   //
+-  NewNotify = (KEYPAD_CONSOLE_IN_EX_NOTIFY *) AllocateZeroPool (sizeof (KEYPAD_CONSOLE_IN_EX_NOTIFY));
++  NewNotify = (KEYPAD_CONSOLE_IN_EX_NOTIFY *)AllocateZeroPool(
++      sizeof(KEYPAD_CONSOLE_IN_EX_NOTIFY));
+   if (NewNotify == NULL) {
+     Status = EFI_OUT_OF_RESOURCES;
+     goto Exit;
+@@ -568,70 +544,67 @@ KeypadRegisterKeyNotify (
+ 
+   NewNotify->Signature         = KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE;
+   NewNotify->KeyNotificationFn = KeyNotificationFunction;
+-  CopyMem (&NewNotify->KeyData, KeyData, sizeof (EFI_KEY_DATA));
+-  InsertTailList (&ConsoleInDev->NotifyList, &NewNotify->NotifyEntry);
++  CopyMem(&NewNotify->KeyData, KeyData, sizeof(EFI_KEY_DATA));
++  InsertTailList(&ConsoleInDev->NotifyList, &NewNotify->NotifyEntry);
+ 
+-  *NotifyHandle                = NewNotify;
+-  Status                       = EFI_SUCCESS;
++  *NotifyHandle = NewNotify;
++  Status        = EFI_SUCCESS;
+ 
+ Exit:
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+   return Status;
+-
+ }
+ 
+ /**
+     Remove a registered notification function from a particular keystroke.
+ 
+     @param This                       Protocol instance pointer.
+-    @param NotificationHandle         The handle of the notification function being unregistered.
++    @param NotificationHandle         The handle of the notification function
++being unregistered.
+ 
+ 
+-    @retval EFI_SUCCESS               The notification function was unregistered successfully.
++    @retval EFI_SUCCESS               The notification function was unregistered
++successfully.
+     @retval EFI_INVALID_PARAMETER     The NotificationHandle is invalid.
+ 
+ **/
+ EFI_STATUS
+ EFIAPI
+-KeypadUnregisterKeyNotify (
+-  IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL  *This,
+-  IN VOID                               *NotificationHandle
+-  )
++KeypadUnregisterKeyNotify(
++    IN EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *This, IN VOID *NotificationHandle)
+ {
+-  EFI_STATUS                            Status;
+-  KEYPAD_CONSOLE_IN_DEV                 *ConsoleInDev;
+-  EFI_TPL                               OldTpl;
+-  LIST_ENTRY                            *Link;
+-  KEYPAD_CONSOLE_IN_EX_NOTIFY           *CurrentNotify;
++  EFI_STATUS                   Status;
++  KEYPAD_CONSOLE_IN_DEV *      ConsoleInDev;
++  EFI_TPL                      OldTpl;
++  LIST_ENTRY *                 Link;
++  KEYPAD_CONSOLE_IN_EX_NOTIFY *CurrentNotify;
+ 
+   if (NotificationHandle == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+-  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS (This);
++  ConsoleInDev = TEXT_INPUT_EX_KEYPAD_CONSOLE_IN_DEV_FROM_THIS(This);
+ 
+   //
+   // Enter critical section
+   //
+-  OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
++  OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
+ 
+-  for (Link = ConsoleInDev->NotifyList.ForwardLink; Link != &ConsoleInDev->NotifyList; Link = Link->ForwardLink) {
+-    CurrentNotify = CR (
+-                      Link,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY,
+-                      NotifyEntry,
+-                      KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE
+-                      );
++  for (Link = ConsoleInDev->NotifyList.ForwardLink;
++       Link != &ConsoleInDev->NotifyList; Link = Link->ForwardLink) {
++    CurrentNotify =
++        CR(Link, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry,
++           KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
+     if (CurrentNotify == NotificationHandle) {
+       //
+       // Remove the notification function from NotifyList and free resources
+       //
+-      RemoveEntryList (&CurrentNotify->NotifyEntry);
++      RemoveEntryList(&CurrentNotify->NotifyEntry);
+ 
+-      gBS->FreePool (CurrentNotify);
++      gBS->FreePool(CurrentNotify);
+       Status = EFI_SUCCESS;
+       goto Exit;
+     }
+@@ -645,7 +618,7 @@ Exit:
+   //
+   // Leave critical section and return
+   //
+-  gBS->RestoreTPL (OldTpl);
++  gBS->RestoreTPL(OldTpl);
+   return Status;
+ }
+ 
+@@ -655,22 +628,17 @@ Exit:
+   @param  Event                 Indicates the event that invoke this function.
+   @param  Context               Indicates the calling context.
+ **/
+-VOID
+-EFIAPI
+-KeyNotifyProcessHandler (
+-  IN  EFI_EVENT                 Event,
+-  IN  VOID                      *Context
+-  )
++VOID EFIAPI KeyNotifyProcessHandler(IN EFI_EVENT Event, IN VOID *Context)
+ {
+-  EFI_STATUS                    Status;
+-  KEYPAD_CONSOLE_IN_DEV         *ConsoleIn;
+-  EFI_KEY_DATA                  KeyData;
+-  LIST_ENTRY                    *Link;
+-  LIST_ENTRY                    *NotifyList;
+-  KEYPAD_CONSOLE_IN_EX_NOTIFY   *CurrentNotify;
+-  EFI_TPL                       OldTpl;
++  EFI_STATUS                   Status;
++  KEYPAD_CONSOLE_IN_DEV *      ConsoleIn;
++  EFI_KEY_DATA                 KeyData;
++  LIST_ENTRY *                 Link;
++  LIST_ENTRY *                 NotifyList;
++  KEYPAD_CONSOLE_IN_EX_NOTIFY *CurrentNotify;
++  EFI_TPL                      OldTpl;
+ 
+-  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *) Context;
++  ConsoleIn = (KEYPAD_CONSOLE_IN_DEV *)Context;
+ 
+   //
+   // Invoke notification functions.
+@@ -679,22 +647,24 @@ KeyNotifyProcessHandler (
+   while (TRUE) {
+     //
+     // Enter critical section
+-    //  
+-    OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
+-    Status = PopEfikeyBufHead (&ConsoleIn->EfiKeyQueueForNotify, &KeyData);
++    //
++    OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
++    Status = PopEfikeyBufHead(&ConsoleIn->EfiKeyQueueForNotify, &KeyData);
+     //
+     // Leave critical section
+     //
+-    gBS->RestoreTPL (OldTpl);
+-    if (EFI_ERROR (Status)) {
++    gBS->RestoreTPL(OldTpl);
++    if (EFI_ERROR(Status)) {
+       break;
+     }
+-    for (Link = GetFirstNode (NotifyList); !IsNull (NotifyList, Link); Link = GetNextNode (NotifyList, Link)) {
+-      CurrentNotify = CR (Link, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry, KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
+-      if (IsKeyRegistered (&CurrentNotify->KeyData, &KeyData)) {
+-        CurrentNotify->KeyNotificationFn (&KeyData);
++    for (Link = GetFirstNode(NotifyList); !IsNull(NotifyList, Link);
++         Link = GetNextNode(NotifyList, Link)) {
++      CurrentNotify =
++          CR(Link, KEYPAD_CONSOLE_IN_EX_NOTIFY, NotifyEntry,
++             KEYPAD_CONSOLE_IN_EX_NOTIFY_SIGNATURE);
++      if (IsKeyRegistered(&CurrentNotify->KeyData, &KeyData)) {
++        CurrentNotify->KeyNotificationFn(&KeyData);
+       }
+     }
+   }
+ }
+-
+diff --git a/MSM8909Pkg/Drivers/LogoDxe/Logo.c b/MSM8909Pkg/Drivers/LogoDxe/Logo.c
+index 1789ad9..9fb9ed4 100644
+--- a/MSM8909Pkg/Drivers/LogoDxe/Logo.c
++++ b/MSM8909Pkg/Drivers/LogoDxe/Logo.c
+@@ -3,22 +3,24 @@
+ 
+ Copyright (c) 2016 - 2017, Intel Corporation. All rights reserved.<BR>
+ This program and the accompanying materials
+-are licensed and made available under the terms and conditions of the BSD License
+-which accompanies this distribution.  The full text of the license may be found at
+-http://opensource.org/licenses/bsd-license.php
++are licensed and made available under the terms and conditions of the BSD
++License which accompanies this distribution.  The full text of the license may
++be found at http://opensource.org/licenses/bsd-license.php
+ 
+ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+ 
+ **/
+ #include <Uefi.h>
+-#include <Protocol/HiiDatabase.h>
++
++#include <Library/DebugLib.h>
++#include <Library/UefiBootServicesTableLib.h>
++
+ #include <Protocol/GraphicsOutput.h>
++#include <Protocol/HiiDatabase.h>
+ #include <Protocol/HiiImageEx.h>
+-#include <Protocol/PlatformLogo.h>
+ #include <Protocol/HiiPackageList.h>
+-#include <Library/UefiBootServicesTableLib.h>
+-#include <Library/DebugLib.h>
++#include <Protocol/PlatformLogo.h>
+ 
+ typedef struct {
+   EFI_IMAGE_ID                          ImageId;
+@@ -28,15 +30,9 @@ typedef struct {
+ } LOGO_ENTRY;
+ 
+ EFI_HII_IMAGE_EX_PROTOCOL *mHiiImageEx;
+-EFI_HII_HANDLE            mHiiHandle;
+-LOGO_ENTRY                mLogos[] = {
+-  {
+-    IMAGE_TOKEN (IMG_LOGO),
+-    EdkiiPlatformLogoDisplayAttributeCenter,
+-    0,
+-    0
+-  }
+-};
++EFI_HII_HANDLE             mHiiHandle;
++LOGO_ENTRY                 mLogos[] = {
++    {IMAGE_TOKEN(IMG_LOGO), EdkiiPlatformLogoDisplayAttributeCenter, 0, 0}};
+ 
+ /**
+   Load a platform logo image and return its data and attributes.
+@@ -53,23 +49,20 @@ LOGO_ENTRY                mLogos[] = {
+ **/
+ EFI_STATUS
+ EFIAPI
+-GetImage (
+-  IN     EDKII_PLATFORM_LOGO_PROTOCOL          *This,
+-  IN OUT UINT32                                *Instance,
+-     OUT EFI_IMAGE_INPUT                       *Image,
+-     OUT EDKII_PLATFORM_LOGO_DISPLAY_ATTRIBUTE *Attribute,
+-     OUT INTN                                  *OffsetX,
+-     OUT INTN                                  *OffsetY
+-  )
++GetImage(
++    IN EDKII_PLATFORM_LOGO_PROTOCOL *This, IN OUT UINT32 *Instance,
++    OUT EFI_IMAGE_INPUT *Image,
++    OUT EDKII_PLATFORM_LOGO_DISPLAY_ATTRIBUTE *Attribute, OUT INTN *OffsetX,
++    OUT INTN *OffsetY)
+ {
+   UINT32 Current;
+-  if (Instance == NULL || Image == NULL ||
+-      Attribute == NULL || OffsetX == NULL || OffsetY == NULL) {
++  if (Instance == NULL || Image == NULL || Attribute == NULL ||
++      OffsetX == NULL || OffsetY == NULL) {
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+   Current = *Instance;
+-  if (Current >= ARRAY_SIZE (mLogos)) {
++  if (Current >= ARRAY_SIZE(mLogos)) {
+     return EFI_NOT_FOUND;
+   }
+ 
+@@ -77,12 +70,11 @@ GetImage (
+   *Attribute = mLogos[Current].Attribute;
+   *OffsetX   = mLogos[Current].OffsetX;
+   *OffsetY   = mLogos[Current].OffsetY;
+-  return mHiiImageEx->GetImageEx (mHiiImageEx, mHiiHandle, mLogos[Current].ImageId, Image);
++  return mHiiImageEx->GetImageEx(
++      mHiiImageEx, mHiiHandle, mLogos[Current].ImageId, Image);
+ }
+ 
+-EDKII_PLATFORM_LOGO_PROTOCOL mPlatformLogo = {
+-  GetImage
+-};
++EDKII_PLATFORM_LOGO_PROTOCOL mPlatformLogo = {GetImage};
+ 
+ /**
+   Entrypoint of this module.
+@@ -98,62 +90,43 @@ EDKII_PLATFORM_LOGO_PROTOCOL mPlatformLogo = {
+ **/
+ EFI_STATUS
+ EFIAPI
+-InitializeLogo (
+-  IN EFI_HANDLE               ImageHandle,
+-  IN EFI_SYSTEM_TABLE         *SystemTable
+-  )
++InitializeLogo(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
+ {
+-  EFI_STATUS                  Status;
++  EFI_STATUS                   Status;
+   EFI_HII_PACKAGE_LIST_HEADER *PackageList;
+-  EFI_HII_DATABASE_PROTOCOL   *HiiDatabase;
+-  EFI_HANDLE                  Handle;
+-
+-  Status = gBS->LocateProtocol (
+-                  &gEfiHiiDatabaseProtocolGuid,
+-                  NULL,
+-                  (VOID **) &HiiDatabase
+-                  );
+-  ASSERT_EFI_ERROR (Status);
+-
+-  Status = gBS->LocateProtocol (
+-                  &gEfiHiiImageExProtocolGuid,
+-                  NULL,
+-                  (VOID **) &mHiiImageEx
+-                  );
+-  ASSERT_EFI_ERROR (Status);
++  EFI_HII_DATABASE_PROTOCOL *  HiiDatabase;
++  EFI_HANDLE                   Handle;
++
++  Status = gBS->LocateProtocol(
++      &gEfiHiiDatabaseProtocolGuid, NULL, (VOID **)&HiiDatabase);
++  ASSERT_EFI_ERROR(Status);
++
++  Status = gBS->LocateProtocol(
++      &gEfiHiiImageExProtocolGuid, NULL, (VOID **)&mHiiImageEx);
++  ASSERT_EFI_ERROR(Status);
+ 
+   //
+   // Retrieve HII package list from ImageHandle
+   //
+-  Status = gBS->OpenProtocol (
+-                  ImageHandle,
+-                  &gEfiHiiPackageListProtocolGuid,
+-                  (VOID **) &PackageList,
+-                  ImageHandle,
+-                  NULL,
+-                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+-                  );
+-  if (EFI_ERROR (Status)) {
+-    DEBUG ((DEBUG_ERROR, "HII Image Package with logo not found in PE/COFF resource section\n"));
++  Status = gBS->OpenProtocol(
++      ImageHandle, &gEfiHiiPackageListProtocolGuid, (VOID **)&PackageList,
++      ImageHandle, NULL, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
++  if (EFI_ERROR(Status)) {
++    DEBUG((
++        DEBUG_ERROR,
++        "HII Image Package with logo not found in PE/COFF resource section\n"));
+     return Status;
+   }
+ 
+   //
+   // Publish HII package list to HII Database.
+   //
+-  Status = HiiDatabase->NewPackageList (
+-                          HiiDatabase,
+-                          PackageList,
+-                          NULL,
+-                          &mHiiHandle
+-                          );
+-  if (!EFI_ERROR (Status)) {
++  Status =
++      HiiDatabase->NewPackageList(HiiDatabase, PackageList, NULL, &mHiiHandle);
++  if (!EFI_ERROR(Status)) {
+     Handle = NULL;
+-    Status = gBS->InstallMultipleProtocolInterfaces (
+-                    &Handle,
+-                    &gEdkiiPlatformLogoProtocolGuid, &mPlatformLogo,
+-                    NULL
+-                    );
++    Status = gBS->InstallMultipleProtocolInterfaces(
++        &Handle, &gEdkiiPlatformLogoProtocolGuid, &mPlatformLogo, NULL);
+   }
+   return Status;
+ }
+diff --git a/MSM8909Pkg/Drivers/SmbiosPlatformDxe/SmbiosPlatformDxe.c b/MSM8909Pkg/Drivers/SmbiosPlatformDxe/SmbiosPlatformDxe.c
+index 2d8897a..56e12ee 100644
+--- a/MSM8909Pkg/Drivers/SmbiosPlatformDxe/SmbiosPlatformDxe.c
++++ b/MSM8909Pkg/Drivers/SmbiosPlatformDxe/SmbiosPlatformDxe.c
+@@ -126,9 +126,9 @@ SMBIOS_TABLE_TYPE0 mBIOSInfoType0 = {
+     0xFF, // EmbeddedControllerFirmwareMinorRelease
+ };
+ 
+-CHAR8 *mBIOSInfoType0Strings[] = {"EDK2 authors", // Vendor String
++CHAR8 *mBIOSInfoType0Strings[] = {"The Samsung slave", // Vendor String
+                                   "1.0", // BiosVersion String
+-                                  "2019/11/19", // BiosReleaseDate String
++                                  "2023/08/07", // BiosReleaseDate String
+                                   NULL};
+ 
+ /***********************************************************************
+@@ -201,7 +201,7 @@ SMBIOS_TABLE_TYPE3 mEnclosureInfoType3 = {
+     0,                         // ContainedElementRecordLength;
+     {{0}},                     // ContainedElements[1];
+ };
+-CHAR8 *mEnclosureInfoType3Strings[] = {"Prime G2", "1", "Unknown", "",
++CHAR8 *mEnclosureInfoType3Strings[] = {"Galaxy J5 2015", "1", "Unknown", "",
+                                        NULL};
+ 
+ /***********************************************************************
+@@ -275,8 +275,8 @@ SMBIOS_TABLE_TYPE4 mProcessorInfoType4 = {
+         0  // ProcessorVoltageIndicateLegacy      :1;
+     },
+     0,                     // ExternalClock;
+-    533,                  // MaxSpeed;
+-    533,                  // CurrentSpeed;
++    1200,                  // MaxSpeed;
++    1200,                  // CurrentSpeed;
+     0x41,                  // Status;
+     ProcessorUpgradeOther, // ProcessorUpgrade;      ///< The enumeration value
+                            // from PROCESSOR_UPGRADE.
+@@ -289,14 +289,14 @@ SMBIOS_TABLE_TYPE4 mProcessorInfoType4 = {
+     FixedPcdGet32(PcdCoreCount), // CoreCount;
+     FixedPcdGet32(PcdCoreCount), // EnabledCoreCount;
+     FixedPcdGet32(PcdCoreCount), // ThreadCount;
+-    0x8,                        // ProcessorCharacteristics;
++    0xAC,                        // ProcessorCharacteristics;
+     ProcessorFamilyARM,          // ARM Processor Family;
+ };
+ 
+ CHAR8 *mProcessorInfoType4Strings[] = {
+   "Socket",
+   "Qualcomm Inc.",
+-  "Snapdragon MSM8916",
++  "Qualcomm Snapdragon 410 Processor (8916)",
+   "MSM8916",
+   NULL
+ };
+@@ -307,9 +307,9 @@ CHAR8 *mProcessorInfoType4Strings[] = {
+ SMBIOS_TABLE_TYPE7 mCacheInfoType7 = {
+     {EFI_SMBIOS_TYPE_CACHE_INFORMATION, sizeof(SMBIOS_TABLE_TYPE7), 0},
+     1,      // SocketDesignation String
+-    0x0180, // Cache Configuration
+-    0x0020, // Maximum Size 32k
+-    0x0020, // Install Size 32k
++    0x0201, // Cache Configuration
++    0x8008, // Maximum Size 256k
++    0x8008, // Install Size 256k
+     {
+         // Supported SRAM Type
+         0, // Other             :1
+@@ -335,9 +335,9 @@ SMBIOS_TABLE_TYPE7 mCacheInfoType7 = {
+     0,                     // Cache Speed unknown
+     CacheErrorParity,      // Error Correction Multi
+     CacheTypeUnified,      // System Cache Type
+-    CacheAssociativity2Way // Associativity
++    CacheAssociativity8Way // Associativity
+ };
+-CHAR8 *mCacheInfoType7Strings[] = {"L1 Cache", NULL};
++CHAR8 *mCacheInfoType7Strings[] = {"L2 Cache", NULL};
+ 
+ /***********************************************************************
+         SMBIOS data definition  TYPE9  System Slot Information
+@@ -391,10 +391,10 @@ SMBIOS_TABLE_TYPE16 mPhyMemArrayInfoType16 = {
+     MemoryErrorCorrectionUnknown,   // MemoryErrorCorrection;          ///< The
+                                     // enumeration value from
+                                     // MEMORY_ERROR_CORRECTION.
+-    0x233FFFFE,                     // MaximumCapacity;
++    0x60000000,                     // MaximumCapacity;
+     0xFFFE,                         // MemoryErrorInformationHandle;
+     1,                              // NumberOfMemoryDevices;
+-    0x233FFFFEULL,                  // ExtendedMaximumCapacity;
++    0x60000000ULL,                  // ExtendedMaximumCapacity;
+ };
+ CHAR8 *mPhyMemArrayInfoType16Strings[] = {NULL};
+ 
+@@ -408,14 +408,14 @@ SMBIOS_TABLE_TYPE17 mMemDevInfoType17 = {
+     0xFFFE, // MemoryErrorInformationHandle;
+     0xFFFF, // TotalWidth;
+     0xFFFF, // DataWidth;
+-    0x0233, // Size; // When bit 15 is 0: Size in MB
++    0x0600, // Size; // When bit 15 is 0: Size in MB
+             // When bit 15 is 1: Size in KB, and continues in ExtendedSize
+     MemoryFormFactorTsop, // FormFactor;                     ///< The
+                           // enumeration value from MEMORY_FORM_FACTOR.
+     0xff,                 // DeviceSet;
+     0,                    // DeviceLocator String
+     0,                    // BankLocator String
+-    MemoryTypeDdr3, // MemoryType;                     ///< The enumeration
++    MemoryTypeLpddr3, // MemoryType;                     ///< The enumeration
+                     // value from MEMORY_DEVICE_TYPE.
+     {
+         // TypeDetail;
+@@ -436,7 +436,7 @@ SMBIOS_TABLE_TYPE17 mMemDevInfoType17 = {
+         0, // Unbuffered      :1;
+         0, // Reserved1       :1;
+     },
+-    400, // Speed;
++    533, // Speed;
+     0,    // Manufacturer String
+     0,    // SerialNumber String
+     0,    // AssetTag String
+diff --git a/MSM8909Pkg/MSM8909Pkg.dsc b/MSM8909Pkg/MSM8909Pkg.dsc
+index 9f8bf05..253edef 100644
+--- a/MSM8909Pkg/MSM8909Pkg.dsc
++++ b/MSM8909Pkg/MSM8909Pkg.dsc
+@@ -54,8 +54,8 @@
+   QTimerLib|MSM8909Pkg/Library/QTimerLib/QTimerLib.inf
+   InterruptsLib|MSM8909Pkg/Library/InterruptsLib/InterruptsLib.inf
+   MallocLib|MSM8909Pkg/Library/MallocLib/MallocLib.inf
+-#  KeypadDeviceHelperLib|MSM8909Pkg/Library/KeypadDeviceHelperLib/KeypadDeviceHelperLib.inf
+-#  KeypadDeviceImplLib|MSM8909Pkg/Library/KeypadDeviceImplLib/KeypadDeviceImplLib.inf
++  KeypadDeviceHelperLib|MSM8909Pkg/Library/KeypadDeviceHelperLib/KeypadDeviceHelperLib.inf
++  KeypadDeviceImplLib|MSM8909Pkg/Library/KeypadDeviceImplLib/KeypadDeviceImplLib.inf
+   DloadUtilLib|MSM8909Pkg/Library/DloadUtilLib/DloadUtilLib.inf
+   QcomPlatformClockInitLib|MSM8909Pkg/Library/QcomPlatformClockInitLib/QcomPlatformClockInitLib.inf
+   QcomPlatformMmcLib|MSM8909Pkg/Library/PlatformMmcLib/QcomPlatformMmcLib.inf
+@@ -323,8 +323,8 @@
+   MSM8909Pkg/Drivers/GpioTlmmInterruptDxe/GpioTlmmInterruptDxe.inf
+   MSM8909Pkg/Drivers/SpmiDxe/SpmiDxe.inf
+   MSM8909Pkg/Drivers/Pm8x41Dxe/Pm8x41Dxe.inf
+-#  MSM8909Pkg/Drivers/GenericKeypadDeviceDxe/GenericKeypadDeviceDxe.inf
+-#  MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
++  MSM8909Pkg/Drivers/GenericKeypadDeviceDxe/GenericKeypadDeviceDxe.inf
++  MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
+   MSM8909Pkg/Drivers/ClockDxe/ClockDxe.inf
+   MSM8909Pkg/Drivers/SdhciMMCHSDxe/SdhciMMCHS.inf
+ 
+@@ -338,7 +338,7 @@
+   #
+   MSM8909Pkg/Drivers/MSM8909PkgDxe/MSM8909PkgDxe.inf
+   MSM8909Pkg/Drivers/SimpleFbDxe/SimpleFbDxe.inf
+-  MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
++  #MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
+   #
+   # USB Host Support
+   #
+@@ -424,3 +424,4 @@
+ !ifdef $(INCLUDE_TFTP_COMMAND)
+   ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf
+ !endif #$(INCLUDE_TFTP_COMMAND)
++
+diff --git a/MSM8909Pkg/MSM8909Pkg.fdf b/MSM8909Pkg/MSM8909Pkg.fdf
+index 2ae0775..0d32339 100644
+--- a/MSM8909Pkg/MSM8909Pkg.fdf
++++ b/MSM8909Pkg/MSM8909Pkg.fdf
+@@ -151,7 +151,7 @@ READ_LOCK_STATUS   = TRUE
+   #
+   INF MSM8909Pkg/Drivers/MSM8909PkgDxe/MSM8909PkgDxe.inf
+   INF MSM8909Pkg/Drivers/SimpleFbDxe/SimpleFbDxe.inf
+-  INF MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
++  #INF MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
+ 
+   # SoC Drivers (Cross-referenced from EFIDroid and Ben)
+   INF MSM8909Pkg/Drivers/BamDxe/BamDxe.inf
+@@ -159,8 +159,8 @@ READ_LOCK_STATUS   = TRUE
+   INF MSM8909Pkg/Drivers/GpioTlmmInterruptDxe/GpioTlmmInterruptDxe.inf
+   INF MSM8909Pkg/Drivers/SpmiDxe/SpmiDxe.inf
+   INF MSM8909Pkg/Drivers/Pm8x41Dxe/Pm8x41Dxe.inf
+- #INF MSM8909Pkg/Drivers/GenericKeypadDeviceDxe/GenericKeypadDeviceDxe.inf
+- #INF MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
++ INF MSM8909Pkg/Drivers/GenericKeypadDeviceDxe/GenericKeypadDeviceDxe.inf
++ INF MSM8909Pkg/Drivers/KeypadDxe/KeypadDxe.inf
+   INF MSM8909Pkg/Drivers/ClockDxe/ClockDxe.inf
+   INF MSM8909Pkg/Drivers/SdhciMMCHSDxe/SdhciMMCHS.inf
+ 
+@@ -213,18 +213,17 @@ READ_LOCK_STATUS   = TRUE
+ 
+   # ACPI Tables
+   #FILE FREEFORM = 7E374E25-8E01-4FEE-87F2-390C23C606CD {
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/BGRT.aml
+-   # SECTION RAW = MSM8909Pkg/AcpiTables/CSRT.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/DBG2.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/DSDT.minimal.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/FACS.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/FACP.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/FADT.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/GTDT.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/MADT.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/SSDT.aml
+-  #  SECTION RAW = MSM8909Pkg/AcpiTables/TPM2.aml
+-  #  SECTION UI = "AcpiTables"
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/dbg2.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/madt.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/gtdt.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/bgrt.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/csrt.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/dsdt.aml
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/facp.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/facs.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/fpdt.acp
++	#SECTION RAW = MSM8909Pkg/PreBuiltAcpis/TPM2.acp
++	#SECTION UI = "AcpiTables"
+   #}
+ 
+   #

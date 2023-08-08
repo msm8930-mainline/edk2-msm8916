@@ -73,21 +73,21 @@ EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE Madt = {
 		// protocol, it might want to wake up the cores in the order of this table.
 
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(0, 0, 0, EFI_ACPI_6_0_GIC_ENABLED,
-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
 		                                 0, 0x19, 0, 0),
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_DISABLED,
-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
 		                                 0, 0x19, 0, 0),
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(2, 2, 2, EFI_ACPI_6_0_GIC_DISABLED,
-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
 		                                 0, 0x19, 0, 0),
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(3, 3, 3, EFI_ACPI_6_0_GIC_DISABLED,
-		                                 23, ACPI_LOCAL_APIC_ADDRESS, 0,
+		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
 		                                 0, 0x19, 0, 0),
 	},
 	// GIC Distributor
 	EFI_ACPI_6_0_GIC_DISTRIBUTOR_INIT(0, FixedPcdGet32(PcdGicDistributorBase),
-	                                  0, 2),
+	                                  0, 3),
 	// End of the table
 };
 

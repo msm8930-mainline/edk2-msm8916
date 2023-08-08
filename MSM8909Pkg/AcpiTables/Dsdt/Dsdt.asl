@@ -19,7 +19,7 @@
 //
 // NOTE: The 3rd parameter (i.e. ComplianceRevision) must be >=2 for 64-bit integer support.
 //
-DefinitionBlock("DSDT.AML", "DSDT", 0x02, "QCOMM ", "MSM8916 ", 3)
+DefinitionBlock("DSDT.AML", "DSDT", 0x02, "QCOM  ", "QCOMEDK2", 3)
 {
 	Scope(\_SB_) {
 		
