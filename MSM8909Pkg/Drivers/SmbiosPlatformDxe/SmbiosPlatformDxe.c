@@ -126,7 +126,7 @@ SMBIOS_TABLE_TYPE0 mBIOSInfoType0 = {
     0xFF, // EmbeddedControllerFirmwareMinorRelease
 };
 
-CHAR8 *mBIOSInfoType0Strings[] = {"The Samsung slave", // Vendor String
+CHAR8 *mBIOSInfoType0Strings[] = {"legalwifi", // Vendor String
                                   "1.0", // BiosVersion String
                                   "2023/08/07", // BiosReleaseDate String
                                   NULL};

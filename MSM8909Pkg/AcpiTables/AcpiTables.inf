@@ -22,17 +22,30 @@
   VERSION_STRING                 = 1.0
 
 [Sources]
-  # Dbg2.aslc
+  #Dbg2.aslc
   Facs.aslc
   Fadt.aslc
   # Gtdt.aslc
   # Madt.aslc
-  Dsdt/Dsdt.asl
+  # Dsdt/Dsdt.asl
 
 [Binaries.AARCH64]
-  ASL|MSM8909Pkg/PreBuiltAcpis/dbg2.acp
-  ASL|MSM8909Pkg/PreBuiltAcpis/madt.acp
-  ASL|MSM8909Pkg/PreBuiltAcpis/gtdt.acp
+  # ASL|MSM8909Pkg/PreBuiltAcpis/dbg2.acp
+  # ASL|MSM8909Pkg/PreBuiltAcpis/madt.acp
+  ASL|MSM8909Pkg/MTP8916Acpis/dbg2.acpi
+  ASL|MSM8909Pkg/MTP8916Acpis/Gtdt.acpi
+  ASL|MSM8909Pkg/MTP8916Acpis/Madt.acpi
+  ASL|MSM8909Pkg/AcpiTables/DSDT.AML
+
+  #ASL|MSM8909Pkg/PreBuiltAcpis/dsdt.aml
+  #ASL|MSM8909Pkg/MTP8916Acpis/bgrt.acpi
+ 
+  # ASL|MSM8909Pkg/MTP8916Acpis/Facp.acpi
+  #ASL|MSM8909Pkg/MTP8916Acpis/TPM2.acpi
+  #ASL|MSM8909Pkg/MTP8916Acpis/Csrt.acpi
+  #ASL|MSM8909Pkg/MTP8916Acpis/Dsdt.aml
+  #ASL|MSM8909Pkg/MTP8916Acpis/Facs.acpi
+  #ASL|MSM8909Pkg/MTP8916Acpis/Fpdt.acpi
 
 [Packages]
   ArmPkg/ArmPkg.dec

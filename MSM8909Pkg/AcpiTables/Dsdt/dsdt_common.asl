@@ -16,48 +16,6 @@
 
 **/
 
-// These should be overwritten by UEFI with the correct values.
-Name(SOID, 0xffffffff)          // Holds the Chip Id
-Name(SIDS, "891600000000000")   // Holds the Chip ID translated to a string
-Name(SIDV, 0xffffffff)          // Holds the Chip Version as (major<<16)|(minor&0xffff)
-Name(SVMJ, 0xffff)              // Holds the major Chip Version
-Name(SVMI, 0xffff)              // Holds the minor Chip Version
-Name(SDFE, 0xffff)              // Holds the Chip Family enum
-Name(SFES, "891600000000000")   // Holds the Chip Family translated to a string
-Name(SIDM, 0xffffffff)          // Holds the Modem Support bit field
-
-//
-// TLMM controller.
-//
-
-Device (GIO0)
-{
-    Name (_HID, "QCOM2405")
-    Name (_UID, 0)
-
-    Method (_CRS, 0x0, NotSerialized) {
-        Name (RBUF, ResourceTemplate ()
-        {
-           // TLMM register address space
-            Memory32Fixed (ReadWrite, 0x01000000, 0x00300000)
-
-            // Summary Interrupt shared by all banks
-            Interrupt(ResourceConsumer, Level, ActiveHigh, Shared, , , ) {240}
-            Interrupt(ResourceConsumer, Level, ActiveHigh, Shared, , , ) {240}
-        })
-        Return (RBUF)
-    }
-    // ACPI method to return Num pins
-    Method(OFNI, 0x0, NotSerialized) {
-        Name(RBUF, Buffer()
-        {    
-            0x7A,  // 0: TOTAL_GPIO_PINS
-            0x00   // 1: TOTAL_GPIO_PINS
-        })
-        Return (RBUF)
-    }
-}
-
 //
 // CPUs
 //
@@ -67,7 +25,7 @@ Device(CPU0)
 	Name (_UID, 0)
 }
 
-#if 0
+
 Device(CPU1)
 {
 	Name (_HID, "ACPI0007")
@@ -84,7 +42,6 @@ Device(CPU3)
 	Name (_UID, 3)
 }
 
-#endif
 
 #if 0
 
@@ -253,24 +210,5 @@ Device (SMD0)
 
 #endif
 
-Device (EMMC)
-{
-	Method (_ADR, 0, NotSerialized)  // _ADR: Address
-	{
-		Return (0x08)
-	}
 
-	Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
-	{
-		Return (Zero)
-	}
-}
-
-//
-// WWAN Coexistence Manager
-//
-Device (COEX)
-{
-    Name (_HID, "QCOM2487")
-}
 

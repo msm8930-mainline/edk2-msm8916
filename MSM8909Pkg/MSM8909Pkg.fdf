@@ -151,7 +151,7 @@ READ_LOCK_STATUS   = TRUE
   #
   INF MSM8909Pkg/Drivers/MSM8909PkgDxe/MSM8909PkgDxe.inf
   INF MSM8909Pkg/Drivers/SimpleFbDxe/SimpleFbDxe.inf
-  #NF MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
+  INF MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
 
   # SoC Drivers (Cross-referenced from EFIDroid and Ben)
   INF MSM8909Pkg/Drivers/BamDxe/BamDxe.inf

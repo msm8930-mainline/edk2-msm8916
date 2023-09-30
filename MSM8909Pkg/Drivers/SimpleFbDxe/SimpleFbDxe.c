@@ -275,12 +275,12 @@ SimpleFbDxeInitialize
     UINT32 FrameBufferAddress = MipiFrameBufferAddr;
 
     mDisplay.Mode->Info->PixelsPerScanLine = MipiFrameBufferWidth;
-    mDisplay.Mode->Info->PixelFormat = PixelRedGreenBlueReserved8BitPerColor;
+    mDisplay.Mode->Info->PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
     mDisplay.Mode->SizeOfInfo = sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
     mDisplay.Mode->FrameBufferBase = FrameBufferAddress;
     mDisplay.Mode->FrameBufferSize = FrameBufferSize;
     
-  /* Create the FrameBufferBltLib configuration. */
+    /* Create the FrameBufferBltLib configuration. */
     Status = FrameBufferBltConfigure (
         (VOID *) (UINTN) mDisplay.Mode->FrameBufferBase,
         mDisplay.Mode->Info,
@@ -304,7 +304,6 @@ SimpleFbDxeInitialize
 
     ASSERT_EFI_ERROR (Status);
     ZeroMem((VOID *) FrameBufferAddress, FrameBufferSize);
-
 
     /* Register handle */
     Status = gBS->InstallMultipleProtocolInterfaces(

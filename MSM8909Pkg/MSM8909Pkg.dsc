@@ -25,7 +25,7 @@
   BUILD_TARGETS                  = DEBUG|RELEASE
   SKUID_IDENTIFIER               = DEFAULT
   FLASH_DEFINITION               = MSM8909Pkg/MSM8909Pkg.fdf
-  DEFINE USE_SCREEN_FOR_SERIAL_OUTPUT = 1
+  DEFINE USE_SCREEN_FOR_SERIAL_OUTPUT = 0 # Set to 1 for logs
 
 !include MSM8909Pkg/CommonDsc.dsc.inc
 
@@ -163,7 +163,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"Alpha"
 
   # We only boot one processor here! Fuck you sonic
-  gArmPlatformTokenSpaceGuid.PcdCoreCount|1
+  gArmPlatformTokenSpaceGuid.PcdCoreCount|4
   gArmPlatformTokenSpaceGuid.PcdClusterCount|1
 
 
@@ -222,6 +222,12 @@
   gArmTokenSpaceGuid.PcdArmArchTimerIntrNum|0x12
   gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum|0x13
 
+  # ARM Architectural Timer Interrupt(GIC PPI) numbers
+  gArmTokenSpaceGuid.PcdArmArchTimerSecIntrNum|18
+  gArmTokenSpaceGuid.PcdArmArchTimerIntrNum|19
+  gArmTokenSpaceGuid.PcdArmArchTimerHypIntrNum|17
+  gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum|20
+
   #gArmTokenSpaceGuid.PcdArmArchTimerVirtIntrNum|27 # Virtual PPI
   #gArmTokenSpaceGuid.PcdArmArchTimerHypIntrNum|26 # Hypervisor PPI
   #gArmTokenSpaceGuid.PcdArmArchTimerSecIntrNum|29 # Physical Secure PPI
@@ -230,7 +236,7 @@
   # GUID of the UI app
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
 
-  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|5
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|0
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdResetOnMemoryTypeInformationChange|FALSE
 
@@ -294,7 +300,7 @@
   EmbeddedPkg/ResetRuntimeDxe/ResetRuntimeDxe.inf
   EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf {
     <LibraryClasses>
-	  RealTimeClockLib|MSM8909Pkg/Library/VirtualRealTimeClockLib/VirtualRealTimeClockLib.inf
+	  RealTimeClockLib|EmbeddedPkg/Library/VirtualRealTimeClockLib/VirtualRealTimeClockLib.inf
   }
   EmbeddedPkg/MetronomeDxe/MetronomeDxe.inf
 
@@ -338,7 +344,7 @@
   #
   MSM8909Pkg/Drivers/MSM8909PkgDxe/MSM8909PkgDxe.inf
   MSM8909Pkg/Drivers/SimpleFbDxe/SimpleFbDxe.inf
-  #MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
+  MSM8909Pkg/Drivers/LogoDxe/LogoDxe.inf
   #
   # USB Host Support
   #

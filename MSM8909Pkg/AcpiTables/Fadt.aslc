@@ -57,11 +57,16 @@ EFI_ACPI_6_0_FIXED_ACPI_DESCRIPTION_TABLE Fadt = {
 	0,                              // UINT8      Century
 	0,                              // UINT16     IaPcBootArch
 	0,                              // UINT8      Reserved1
-	EFI_ACPI_6_0_HW_REDUCED_ACPI |
-	EFI_ACPI_6_0_LOW_POWER_S0_IDLE_CAPABLE, // UINT32     Flags
-	NULL_GAS,			// EFI_ACPI_6_0_GENERIC_ADDRESS_STRUCTURE  ResetReg
-	1,				// UINT8      ResetValue
-	0,				// UINT16     ArmBootArchFlags
+	EFI_ACPI_6_0_HW_REDUCED_ACPI | EFI_ACPI_6_0_LOW_POWER_S0_IDLE_CAPABLE, // UINT32 Flags
+	{
+	  EFI_ACPI_6_0_EMBEDDED_CONTROLLER,
+	  0,
+	  0,
+	  EFI_ACPI_6_0_DWORD,
+	  0x009020B4,
+	}, // EFI_ACPI_6_0_GENERIC_ADDRESS_STRUCTURE ResetReg
+	1, // UINT8 ResetValue
+	0, // UINT16 ArmBootArchFlags
 	EFI_ACPI_6_0_FIXED_ACPI_DESCRIPTION_TABLE_MINOR_REVISION, // UINT8 MinorRevision
 	0,				// UINT64     XFirmwareCtrl
 	0,				// UINT64     XDsdt

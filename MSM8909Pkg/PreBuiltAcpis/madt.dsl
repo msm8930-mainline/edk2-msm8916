@@ -33,7 +33,7 @@
                            Processor Enabled : 1
           Performance Interrupt Trigger Mode : 0
           Virtual GIC Interrupt Trigger Mode : 0
-[03Ch 0060   4]     Parking Protocol Version : 00000001
+[03Ch 0060   4]     Parking Protocol Version : 00000000
 [040h 0064   4]        Performance Interrupt : 00000017
 [044h 0068   8]               Parked Address : 0000000080301000
 [04Ch 0076   8]                 Base Address : 0000000000000000
@@ -45,10 +45,10 @@
 [058h 0088   4]         CPU Interface Number : 00000001
 [05Ch 0092   4]                Processor UID : 00000001
 [060h 0096   4]        Flags (decoded below) : 00000000
-                           Processor Enabled : 0
+                           Processor Enabled : 1
           Performance Interrupt Trigger Mode : 0
           Virtual GIC Interrupt Trigger Mode : 0
-[064h 0100   4]     Parking Protocol Version : 00000001
+[064h 0100   4]     Parking Protocol Version : 00000000
 [068h 0104   4]        Performance Interrupt : 00000017
 [06Ch 0108   8]               Parked Address : 0000000080302000
 [074h 0116   8]                 Base Address : 0000000000000000
@@ -60,10 +60,10 @@
 [080h 0128   4]         CPU Interface Number : 00000002
 [084h 0132   4]                Processor UID : 00000002
 [088h 0136   4]        Flags (decoded below) : 00000000
-                           Processor Enabled : 0
+                           Processor Enabled : 1
           Performance Interrupt Trigger Mode : 0
           Virtual GIC Interrupt Trigger Mode : 0
-[08Ch 0140   4]     Parking Protocol Version : 00000001
+[08Ch 0140   4]     Parking Protocol Version : 00000000
 [090h 0144   4]        Performance Interrupt : 00000017
 [094h 0148   8]               Parked Address : 0000000080303000
 [09Ch 0156   8]                 Base Address : 0000000000000000
@@ -75,10 +75,10 @@
 [0A8h 0168   4]         CPU Interface Number : 00000003
 [0ACh 0172   4]                Processor UID : 00000003
 [0B0h 0176   4]        Flags (decoded below) : 00000000
-                           Processor Enabled : 0
+                           Processor Enabled : 1
           Performance Interrupt Trigger Mode : 0
           Virtual GIC Interrupt Trigger Mode : 0
-[0B4h 0180   4]     Parking Protocol Version : 00000001
+[0B4h 0180   4]     Parking Protocol Version : 00000000
 [0B8h 0184   4]        Performance Interrupt : 00000017
 [0BCh 0188   8]               Parked Address : 0000000080304000
 [0C4h 0196   8]                 Base Address : 0000000000000000

@@ -343,7 +343,7 @@ VOID EFIAPI MMCHSExitBsUninit(IN EFI_EVENT Event, IN VOID *Context)
   OldTpl = gBS->RaiseTPL(TPL_NOTIFY);
 
   // Put card into sleep
-  mmc_put_card_to_sleep(Instance->MmcDev);
+  //mmc_put_card_to_sleep(Instance->MmcDev);
 
   gBS->RestoreTPL(OldTpl);
 }

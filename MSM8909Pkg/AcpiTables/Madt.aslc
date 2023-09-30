@@ -34,7 +34,7 @@
 // lk/platform/msm8916/include/platform/iomap.h
 //
 
-#define APPS_SS_BASE				0x0b000000
+#define APPS_SS_BASE			0x0b000000
 #define ACPI_LOCAL_APIC_ADDRESS		(APPS_SS_BASE + 0x2000)
 
 //These addresses are defined by the MP shared region defined in the UEFI memory map.
@@ -73,21 +73,21 @@ EFI_ACPI_MULTIPLE_APIC_DESCRIPTION_TABLE Madt = {
 		// protocol, it might want to wake up the cores in the order of this table.
 
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(0, 0, 0, EFI_ACPI_6_0_GIC_ENABLED,
+		                                 23, 0x80301000, 0,
+		                                 0, 25, 0, 0),
+		/*EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_DISABLED,
 		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
-		                                 0, 0x19, 0, 0),
-		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(1, 1, 1, EFI_ACPI_6_0_GIC_DISABLED,
-		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
-		                                 0, 0x19, 0, 0),
+		                                 0, 25, 0, 0),
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(2, 2, 2, EFI_ACPI_6_0_GIC_DISABLED,
 		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
-		                                 0, 0x19, 0, 0),
+		                                 0, 25, 0, 0),
 		EFI_ACPI_6_0_GICC_STRUCTURE_INIT(3, 3, 3, EFI_ACPI_6_0_GIC_DISABLED,
 		                                 23, FixedPcdGet64 (PcdGicInterruptInterfaceBase), 0,
-		                                 0, 0x19, 0, 0),
+		                                 0, 25, 0, 0),*/
 	},
 	// GIC Distributor
 	EFI_ACPI_6_0_GIC_DISTRIBUTOR_INIT(0, FixedPcdGet32(PcdGicDistributorBase),
-	                                  0, 3),
+	                                  0, 2),
 	// End of the table
 };
 
